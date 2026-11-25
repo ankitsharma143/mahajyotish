@@ -9287,6 +9287,19 @@
       function init() {
         state.lang = safeGetStorage(STORAGE_KEYS.LANG, 'hi') === 'en' ? 'en' : 'hi';
         state.backendUrl = safeGetStorage(STORAGE_KEYS.BACKEND_URL, '');
+        if (!state.backendUrl && window.location.protocol === 'https:' && !/unused\.url|googleusercontent|scf\.usercontent/i.test(window.location.hostname)) {
+          const autoEndpoint = window.location.origin + '/api/analyze-palm';
+          fetch(window.location.origin + '/api/health')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (d && d.status === 'ok') {
+                state.backendUrl = autoEndpoint;
+                el('backendUrlInput').value = autoEndpoint;
+                applyLanguageAndModeUI();
+              }
+            })
+            .catch(() => {});
+        }
         el('backendUrlInput').value = state.backendUrl;
         loadSavedReports();
 
