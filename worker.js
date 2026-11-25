@@ -37,26 +37,34 @@ async function callGemini(apiKey, preferredModel, payload) {
     'gemini-3.8-flash',
     'gemini-3.5-flash',
     'gemini-3.0-flash',
-    'gemini-2.5-flash'
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite'
   ].filter(Boolean)));
 
+  const retryStatuses = new Set([404, 429, 500, 502, 503, 504]);
   let lastStatus = 502;
   let lastErr = '';
-  for (const m of candidates) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return { ok: true, data, usedModel: m };
+
+  for (let pass = 0; pass < 2; pass++) {
+    if (pass === 1) {
+      await new Promise((r) => setTimeout(r, 900));
     }
-    lastStatus = res.status;
-    lastErr = await res.text().catch(() => '');
-    if (res.status !== 404) {
-      break;
+    for (const m of candidates) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { ok: true, data, usedModel: m };
+      }
+      lastStatus = res.status;
+      lastErr = await res.text().catch(() => '');
+      if (!retryStatuses.has(res.status)) {
+        return { ok: false, status: lastStatus, errTxt: lastErr };
+      }
     }
   }
   return { ok: false, status: lastStatus, errTxt: lastErr };
