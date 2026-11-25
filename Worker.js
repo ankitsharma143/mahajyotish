@@ -133,7 +133,7 @@ export default {
 
       try {
         const omRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=12&language=en&format=json`, {
-          signal: AbortSignal.timeout(7000)
+          signal: AbortSignal.timeout(15000)
         });
         if (omRes.ok) {
           const omJson = await omRes.json();

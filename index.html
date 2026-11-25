@@ -10038,43 +10038,122 @@
         }
       ];
 
+      function buildLocalSoulmateSketchDataUrl(spouseGender, seedVal) {
+        const seed = Math.abs(Number(seedVal) || 12345);
+        const isFemale = spouseGender !== 'male';
+        const v1 = (seed % 5) - 2;
+        const v2 = ((seed >> 3) % 5) - 2;
+        const v3 = (seed >> 6) % 3;
+        const jawW = 68 + v1 * 3;
+        const eyeY = 212 + (v2 % 2) * 2;
+        const smileCurve = 294 + (seed % 4);
+        const hairFemale = v3 === 0
+          ? `<path d="M116 218 C108 135 142 84 200 82 C258 84 292 135 284 218 C294 278 292 355 276 410 C266 356 266 285 262 230 C254 168 232 136 200 132 C168 136 146 168 138 230 C134 285 134 356 124 410 C108 355 106 278 116 218 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/>`
+          : v3 === 1
+          ? `<path d="M118 224 C112 132 146 80 200 80 C254 80 288 132 282 224 C298 286 306 346 286 392 C272 346 268 278 264 226 C252 158 224 132 200 128 C176 132 148 158 136 226 C132 278 128 346 114 392 C94 346 102 286 118 224 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/>`
+          : `<path d="M120 220 C114 134 148 84 200 84 C252 84 286 134 280 220 C276 268 270 305 264 334 C258 272 260 218 256 184 C246 142 224 128 200 126 C176 128 154 142 144 184 C140 218 142 272 136 334 C130 305 124 268 120 220 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/><circle cx="200" cy="76" r="24" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.5"/>`;
+        const hairMale = v3 === 0
+          ? `<path d="M128 212 C122 142 144 92 200 90 C256 92 278 142 272 212 C266 174 256 146 232 138 C206 132 184 140 162 144 C144 150 134 176 128 212 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.8"/>`
+          : `<path d="M128 210 C120 138 148 86 204 86 C256 88 278 136 272 210 C266 166 250 138 220 132 C188 126 154 136 138 164 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.8"/>`;
+        const facialExtra = isFemale
+          ? `<circle cx="200" cy="${eyeY - 16}" r="3.4" fill="#292524"/><ellipse cx="128" cy="264" rx="4.5" ry="7" fill="none" stroke="#44403c" stroke-width="1.6"/><ellipse cx="272" cy="264" rx="4.5" ry="7" fill="none" stroke="#44403c" stroke-width="1.6"/><path d="M156 358 Q200 398 244 358" fill="none" stroke="#44403c" stroke-width="1.8" stroke-dasharray="3 2"/>`
+          : (v3 !== 2 ? `<path d="M142 264 C144 304 168 334 200 336 C232 334 256 304 258 264 C248 292 228 318 200 320 C172 318 152 292 142 264 Z" fill="#292524" opacity="0.22"/><path d="M174 282 Q200 274 226 282" fill="none" stroke="#292524" stroke-width="2.6" opacity="0.65" stroke-linecap="round"/>` : '');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
+          <defs>
+            <radialGradient id="paperG" cx="50%" cy="42%" r="65%"><stop offset="0%" stop-color="#faf5e8"/><stop offset="72%" stop-color="#efe5d1"/><stop offset="100%" stop-color="#dfd0b4"/></radialGradient>
+            <linearGradient id="hairG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#292524"/><stop offset="50%" stop-color="#44403c"/><stop offset="100%" stop-color="#1c1917"/></linearGradient>
+            <linearGradient id="shadeG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#292524" stop-opacity="0.16"/><stop offset="55%" stop-color="#292524" stop-opacity="0.02"/><stop offset="100%" stop-color="#292524" stop-opacity="0.2"/></linearGradient>
+          </defs>
+          <rect width="400" height="500" fill="url(#paperG)"/>
+          ${isFemale ? hairFemale : ''}
+          <path d="M84 495 C92 418 128 386 168 374 L232 374 C272 386 308 418 316 495 Z" fill="#e7dbc5" stroke="#292524" stroke-width="2.1"/>
+          <path d="M168 374 L200 426 L232 374" fill="none" stroke="#292524" stroke-width="2"/>
+          <path d="M174 322 L172 378 Q200 392 228 378 L226 322 Z" fill="#efe4cf" stroke="#292524" stroke-width="1.8"/>
+          <path d="M174 326 Q200 348 226 326 L225 344 Q200 356 175 344 Z" fill="#292524" opacity="0.18"/>
+          <path d="M${200 - jawW + 2} 226 C${200 - jawW - 14} 226 ${200 - jawW - 12} 260 ${200 - jawW + 4} 262" fill="#f3ead8" stroke="#292524" stroke-width="1.8"/>
+          <path d="M${200 + jawW - 2} 226 C${200 + jawW + 14} 226 ${200 + jawW + 12} 260 ${200 + jawW - 4} 262" fill="#f3ead8" stroke="#292524" stroke-width="1.8"/>
+          <path d="M${200 - jawW} 214 C${200 - jawW} 148 164 122 200 122 C236 122 ${200 + jawW} 148 ${200 + jawW} 214 C${200 + jawW} 274 238 332 200 336 C162 332 ${200 - jawW} 274 ${200 - jawW} 214 Z" fill="#f6efe1" stroke="#1c1917" stroke-width="2.1"/>
+          <path d="M${200 - jawW} 214 C${200 - jawW} 148 164 122 200 122 C236 122 ${200 + jawW} 148 ${200 + jawW} 214 C${200 + jawW} 274 238 332 200 336 C162 332 ${200 - jawW} 274 ${200 - jawW} 214 Z" fill="url(#shadeG)"/>
+          ${!isFemale ? hairMale : ''}
+          <path d="M150 ${eyeY - 14} Q168 ${eyeY - 24} 186 ${eyeY - 15}" fill="none" stroke="#1c1917" stroke-width="${isFemale ? '2.6' : '3.6'}" stroke-linecap="round"/>
+          <path d="M214 ${eyeY - 15} Q232 ${eyeY - 24} 250 ${eyeY - 14}" fill="none" stroke="#1c1917" stroke-width="${isFemale ? '2.6' : '3.6'}" stroke-linecap="round"/>
+          <path d="M153 ${eyeY} Q169 ${eyeY - 10} 185 ${eyeY} Q169 ${eyeY + 8} 153 ${eyeY} Z" fill="#fffdf8" stroke="#1c1917" stroke-width="2"/>
+          <circle cx="169" cy="${eyeY}" r="5.4" fill="#1c1917"/><circle cx="171" cy="${eyeY - 2}" r="1.7" fill="#ffffff"/>
+          <path d="M215 ${eyeY} Q231 ${eyeY - 10} 247 ${eyeY} Q231 ${eyeY + 8} 215 ${eyeY} Z" fill="#fffdf8" stroke="#1c1917" stroke-width="2"/>
+          <circle cx="231" cy="${eyeY}" r="5.4" fill="#1c1917"/><circle cx="233" cy="${eyeY - 2}" r="1.7" fill="#ffffff"/>
+          <path d="M200 ${eyeY + 4} L196 254 Q200 262 208 256" fill="none" stroke="#292524" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M177 284 Q188 279 200 282 Q212 279 223 284 Q200 ${smileCurve} 177 284 Z" fill="#d6c4ae" stroke="#1c1917" stroke-width="1.7"/>
+          <path d="M179 284 Q200 290 221 284" fill="none" stroke="#292524" stroke-width="1.3"/>
+          ${facialExtra}
+          <rect x="14" y="14" width="372" height="472" rx="12" fill="none" stroke="#78716c" stroke-width="1.2" opacity="0.45"/>
+        </svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+
       async function generateMarriageSketchImage(promptEn, seedVal, spouseGender) {
         const loader = el('marriageSketchLoader');
         const imgEl = el('marriageSketchImg');
         const badge = el('marriageSketchEngineBadge');
+        const finalGender = spouseGender || lastMarriageSpouseGender || 'female';
+        const finalSeed = Math.abs(Number(seedVal) || Math.floor(Math.random() * 999999));
+
+        const showFinalImg = (srcUrl, label) => {
+          lastMarriageSketchDataUrl = srcUrl;
+          if (imgEl) {
+            imgEl.src = srcUrl;
+            imgEl.classList.remove('hidden');
+          }
+          if (loader) loader.classList.add('hidden');
+          if (badge) badge.textContent = label || 'Real AI Sketch ✓';
+        };
+
         if (loader) {
           loader.classList.remove('hidden');
-          loader.innerHTML = `<div class="w-10 h-10 border-4 border-pink-400/30 border-t-amber-300 rounded-full animate-spin mx-auto"></div><p class="text-xs text-amber-200 font-semibold mt-2">रियल AI कलाकार आपके जीवनसाथी का पेंसिल स्केच बना रहा है...</p>`;
+          loader.innerHTML = `<div class="w-10 h-10 border-4 border-pink-400/30 border-t-amber-300 rounded-full animate-spin mx-auto"></div><p class="text-xs text-amber-200 font-semibold mt-2">रियल AI कलाकार आपके जीवनसाथी का पेंसिल स्केच बना रहा है (कृपया 5–15 सेकंड प्रतीक्षा करें)...</p>`;
         }
         if (imgEl) imgEl.classList.add('hidden');
-        if (badge) badge.textContent = 'Drawing...';
+        if (badge) badge.textContent = 'AI Drawing...';
+
+        // Tier 1: Cloudflare Worker /api/marriage-sketch (Real AI Flux + Gemini AI Sketch)
         try {
           const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 28000);
           const res = await fetch(`${base}/api/marriage-sketch`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              promptEn,
-              spouseGender: spouseGender || lastMarriageSpouseGender,
-              seed: seedVal || Math.floor(Math.random() * 999999)
-            })
+            body: JSON.stringify({ promptEn, spouseGender: finalGender, seed: finalSeed }),
+            signal: ctrl.signal
           });
-          const data = await res.json();
-          if (res.ok && data.imageDataUrl) {
-            lastMarriageSketchDataUrl = data.imageDataUrl;
-            imgEl.src = data.imageDataUrl;
-            imgEl.classList.remove('hidden');
-            loader.classList.add('hidden');
-            if (badge) badge.textContent = data.engine || 'Real AI Sketch ✓';
+          clearTimeout(tid);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.imageDataUrl) {
+              showFinalImg(data.imageDataUrl, data.engine || 'Real AI Sketch ✓');
+              return;
+            }
+          }
+        } catch (_) {}
+
+        // Tier 2: Direct Browser Real AI Image (Pollinations Flux directly from user's device IP)
+        try {
+          const shortP = String(promptEn || '').slice(0, 170) + ', realistic graphite pencil portrait sketch on cream paper, fine charcoal shading, no text';
+          const directUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(shortP)}?model=flux&width=512&height=640&nologo=true&seed=${finalSeed}`;
+          const loaded = await new Promise((resolve) => {
+            const testImg = new Image();
+            const timer = setTimeout(() => resolve(false), 18000);
+            testImg.onload = () => { clearTimeout(timer); resolve(true); };
+            testImg.onerror = () => { clearTimeout(timer); resolve(false); };
+            testImg.src = directUrl;
+          });
+          if (loaded) {
+            showFinalImg(directUrl, 'Real AI Flux ✓');
             return;
           }
-          throw new Error(data.message || 'Sketch error');
-        } catch (err) {
-          if (loader) {
-            loader.innerHTML = `<p class="text-xs text-rose-300 font-semibold">कनेक्शन धीमा है। ऊपर "🔄 नया AI स्केच बनाएं" पर क्लिक करें।</p>`;
-          }
-          if (badge) badge.textContent = 'Retry';
-        }
+        } catch (_) {}
+
+        // Tier 3: Instant Guaranteed Local Seed-Unique Graphite Portrait Sketch (Never fails)
+        showFinalImg(buildLocalSoulmateSketchDataUrl(finalGender, finalSeed), 'Astro-Art Sketch ✓');
       }
 
       async function runMarriagePredictionAndSketch() {
