@@ -35,9 +35,6 @@ async function callGemini(apiKey, preferredModel, payload) {
   const candidates = Array.from(new Set([
     preferredModel,
     'gemini-3.8-flash',
-    'gemini-3.5-flash',
-    'gemini-3.0-flash',
-    'gemini-2.5-flash',
     'gemini-2.5-flash-lite'
   ].filter(Boolean)));
 
@@ -45,16 +42,14 @@ async function callGemini(apiKey, preferredModel, payload) {
   let lastStatus = 502;
   let lastErr = '';
 
-  for (let pass = 0; pass < 2; pass++) {
-    if (pass === 1) {
-      await new Promise((r) => setTimeout(r, 900));
-    }
-    for (const m of candidates) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  for (const m of candidates) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000)
       });
       if (res.ok) {
         const data = await res.json();
@@ -65,6 +60,9 @@ async function callGemini(apiKey, preferredModel, payload) {
       if (!retryStatuses.has(res.status)) {
         return { ok: false, status: lastStatus, errTxt: lastErr };
       }
+    } catch (e) {
+      lastStatus = 504;
+      lastErr = e?.message || 'Request timeout';
     }
   }
   return { ok: false, status: lastStatus, errTxt: lastErr };
@@ -134,7 +132,7 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
               { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
             ]
           }],
-          generationConfig: { temperature: 0.45, topP: 0.9, maxOutputTokens: 8192, responseMimeType: 'application/json' }
+          generationConfig: { temperature: 0.45, topP: 0.9, maxOutputTokens: 4096, responseMimeType: 'application/json' }
         });
 
         if (!result.ok) {
