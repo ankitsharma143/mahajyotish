@@ -42,8 +42,16 @@ async function callGemini(apiKey, preferredModel, payload) {
   let lastStatus = 502;
   let lastErr = '';
 
-  for (const m of candidates) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const attempts = [
+    ...candidates.map((m) => ({ model: m, delay: 0 })),
+    { model: candidates[0], delay: 1200 }
+  ];
+
+  for (const step of attempts) {
+    if (step.delay > 0) {
+      await new Promise((r) => setTimeout(r, step.delay));
+    }
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(step.model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -53,7 +61,7 @@ async function callGemini(apiKey, preferredModel, payload) {
       });
       if (res.ok) {
         const data = await res.json();
-        return { ok: true, data, usedModel: m };
+        return { ok: true, data, usedModel: step.model };
       }
       lastStatus = res.status;
       lastErr = await res.text().catch(() => '');
