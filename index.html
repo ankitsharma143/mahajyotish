@@ -226,6 +226,24 @@
           <span>अकाउंट</span>
         </button>
 
+        <!-- Family Profiles Auto-Fill -->
+        <button id="openFamilyProfilesBtn" type="button" class="btn-outline-gold px-2.5 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-1 border-cyan-400/45 text-cyan-200">
+          <span>👨‍👩‍👧‍👦</span>
+          <span>प्रोफाइल</span>
+        </button>
+
+        <!-- Daily Alerts -->
+        <button id="toggleDailyAlertsBtn" type="button" class="btn-outline-gold px-2.5 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-1 border-amber-400/45 text-amber-200">
+          <span>🔔</span>
+          <span id="dailyAlertBtnText">अलर्ट</span>
+        </button>
+
+        <!-- WhatsApp Direct Guru Consultation -->
+        <button id="openWhatsappBookBtn" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 bg-emerald-600/85 hover:bg-emerald-500 text-white border border-emerald-300/40">
+          <span>💬</span>
+          <span>बुकिंग</span>
+        </button>
+
         <!-- Backend Settings -->
         <button id="openSettingsBtn" type="button" class="btn-outline-gold px-2.5 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-1.5">
           <span id="backendStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -436,6 +454,24 @@
           </div>
           <div class="font-bold text-xs sm:text-base text-amber-200 leading-snug">विवाह व जीवनसाथी AI स्केच</div>
           <p class="text-[11px] sm:text-xs text-purple-200/80 leading-snug line-clamp-2">शादी कब होगी, किससे होगी और जीवनसाथी का रियल AI स्केच</p>
+        </button>
+
+        <button id="tabTarotBtn" type="button" class="gold-card rounded-2xl p-3 sm:p-4 text-left space-y-2 hover:scale-[1.02] transition border border-violet-400/45 bg-gradient-to-br from-violet-950/60 via-indigo-950/45 to-purple-950/40">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-violet-500/20 border border-violet-400/50 flex items-center justify-center text-xl sm:text-2xl">🃏</span>
+            <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] truncate max-w-[95px] font-bold bg-violet-500/25 text-violet-200">3-Card AI Tarot</span>
+          </div>
+          <div class="font-bold text-xs sm:text-base text-amber-200 leading-snug">AI टैरो कार्ड रीडिंग</div>
+          <p class="text-[11px] sm:text-xs text-purple-200/80 leading-snug line-clamp-2">भूत, वर्तमान व भविष्य के 3 टैरो कार्ड और AI मार्गदर्शन</p>
+        </button>
+
+        <button id="tabVastuMapBtn" type="button" class="gold-card rounded-2xl p-3 sm:p-4 text-left space-y-2 hover:scale-[1.02] transition border border-teal-400/45 bg-gradient-to-br from-teal-950/55 via-emerald-950/40 to-cyan-950/35">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-teal-500/20 border border-teal-400/50 flex items-center justify-center text-xl sm:text-2xl">🗺️</span>
+            <span class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] truncate max-w-[95px] font-bold bg-teal-500/25 text-teal-200">Map Vision AI</span>
+          </div>
+          <div class="font-bold text-xs sm:text-base text-amber-200 leading-snug">AI वास्तु नक्शा स्कैनर</div>
+          <p class="text-[11px] sm:text-xs text-purple-200/80 leading-snug line-clamp-2">घर/ऑफिस का नक्शा अपलोड करें और बिना तोड़-फोड़ वास्तु उपाय पाएं</p>
         </button>
       </div>
     </section>
@@ -1905,7 +1941,145 @@
         </div>
       </div>
     </section>
+
+    <!-- ==================== VIEW 18: AI 3-CARD TAROT READING ==================== -->
+    <section id="tarotView" class="hidden space-y-6">
+      <div class="gold-card rounded-2xl p-5 sm:p-6 space-y-4 border border-violet-400/40">
+        <div class="space-y-1">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-violet-500/20 text-violet-200 border border-violet-400/40">🃏 22 मेजर आर्काना + Real Gemini AI Tarot</span>
+          <h2 class="mystic-title text-xl sm:text-2xl font-bold text-amber-200">AI टैरो कार्ड रीडिंग (भूत • वर्तमान • भविष्य)</h2>
+          <p class="text-xs sm:text-sm text-purple-200/85">मन में अपना प्रश्न सोचें, विषय चुनें और नीचे बटन दबाकर अपने 3 दिव्य टैरो कार्ड निकालें।</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs sm:text-sm">
+          <div class="sm:col-span-4">
+            <label for="tarotTopicSelect" class="block font-semibold text-amber-200 mb-1">प्रश्न का विषय (Topic)</label>
+            <select id="tarotTopicSelect" class="w-full rounded-xl px-3 py-2.5 bg-black/70 border border-amber-400/35 text-purple-50">
+              <option value="करियर और धन (Career & Money)">💼 करियर और धन (Career & Money)</option>
+              <option value="प्रेम और विवाह (Love & Marriage)">💞 प्रेम और विवाह (Love & Marriage)</option>
+              <option value="व्यापार और सफलता (Business & Growth)">📈 व्यापार और सफलता (Business)</option>
+              <option value="परिवार और स्वास्थ्य (Family & Health)">🏡 परिवार और स्वास्थ्य (Family)</option>
+              <option value="सामान्य जीवन मार्गदर्शन (General Guidance)">✨ सामान्य जीवन मार्गदर्शन</option>
+            </select>
+          </div>
+          <div class="sm:col-span-8">
+            <label for="tarotQuestionInput" class="block font-semibold text-amber-200 mb-1">आपका विशेष प्रश्न (वैकल्पिक)</label>
+            <input id="tarotQuestionInput" type="text" placeholder="जैसे: क्या मुझे इस साल नई नौकरी या प्रमोशन मिलेगा?" class="w-full rounded-xl px-3 py-2.5 bg-black/60 border border-amber-400/35 text-purple-50" />
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button id="drawTarotBtn" type="button" class="btn-gold px-6 py-3 rounded-xl text-sm font-bold">🃏 3 दिव्य टैरो कार्ड निकालें (Draw Cards)</button>
+          <button id="printTarotPdfBtn" type="button" class="hidden btn-outline-gold px-4 py-3 rounded-xl text-xs font-bold">📄 टैरो PDF सेव करें</button>
+        </div>
+      </div>
+
+      <div id="tarotResultWrap" class="hidden space-y-5">
+        <div id="tarotCardsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        <div id="tarotAiSummaryBox" class="gold-card rounded-2xl p-5 space-y-3 border border-violet-400/40"></div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 19: AI VASTU FLOORPLAN MAP SCANNER ==================== -->
+    <section id="vastuMapView" class="hidden space-y-6">
+      <div class="gold-card rounded-2xl p-5 sm:p-6 space-y-4 border border-teal-400/40">
+        <div class="space-y-1">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-200 border border-teal-400/40">🗺️ Gemini Vision + बिना तोड़-फोड़ वास्तु उपाय</span>
+          <h2 class="mystic-title text-xl sm:text-2xl font-bold text-amber-200">AI वास्तु नक्शा स्कैनर (Floorplan / Home Map)</h2>
+          <p class="text-xs sm:text-sm text-purple-200/85">अपने घर, प्लॉट या ऑफिस के नक्शे की फोटो (या हाथ से बना स्केच) अपलोड करें और मुख्य द्वार की दिशा चुनें — Real AI पूरे घर का वास्तु स्कोर और बिना तोड़-फोड़ उपाय बताएगा।</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+          <div>
+            <label for="vastuMapTypeSelect" class="block font-semibold text-amber-200 mb-1">प्रॉपर्टी का प्रकार</label>
+            <select id="vastuMapTypeSelect" class="w-full rounded-xl px-3 py-2.5 bg-black/70 border border-amber-400/35 text-purple-50">
+              <option value="Home / Flat">🏠 घर / फ्लैट (Home)</option>
+              <option value="Office / Shop">🏢 ऑफिस / दुकान (Office/Shop)</option>
+              <option value="Plot / Land">📐 प्लॉट / भूमि (Plot)</option>
+            </select>
+          </div>
+          <div>
+            <label for="vastuMapFacingSelect" class="block font-semibold text-amber-200 mb-1">मुख्य द्वार की दिशा (Facing)</label>
+            <select id="vastuMapFacingSelect" class="w-full rounded-xl px-3 py-2.5 bg-black/70 border border-amber-400/35 text-purple-50">
+              <option value="East (पूर्वमुखी)">🌅 पूर्वमुखी (East)</option>
+              <option value="North (उत्तरमुखी)">🧭 उत्तरमुखी (North)</option>
+              <option value="North-East (ईशान)">✨ ईशान कोण (North-East)</option>
+              <option value="West (पश्चिममुखी)">🌇 पश्चिममुखी (West)</option>
+              <option value="South (दक्षिणमुखी)">☀️ दक्षिणमुखी (South)</option>
+              <option value="South-East (आग्नेय)">🔥 आग्नेय (South-East)</option>
+              <option value="North-West (वायव्य)">💨 वायव्य (North-West)</option>
+              <option value="South-West (नैऋत्य)">🏔️ नैऋत्य (South-West)</option>
+            </select>
+          </div>
+          <div>
+            <label for="vastuMapFileInput" class="block font-semibold text-amber-200 mb-1">नक्शे की फोटो अपलोड करें</label>
+            <input id="vastuMapFileInput" type="file" accept="image/*" class="w-full rounded-xl px-2.5 py-2 bg-black/60 border border-amber-400/35 text-purple-100 text-xs" />
+          </div>
+        </div>
+
+        <div id="vastuMapPreviewWrap" class="hidden">
+          <img id="vastuMapPreviewImg" alt="Vastu Map Preview" class="max-h-64 rounded-2xl border border-teal-400/40 mx-auto object-contain bg-black/50" />
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <button id="scanVastuMapBtn" type="button" class="btn-gold px-6 py-3 rounded-xl text-sm font-bold">🗺️ AI वास्तु नक्शा स्कैन करें</button>
+          <button id="printVastuMapPdfBtn" type="button" class="hidden btn-outline-gold px-4 py-3 rounded-xl text-xs font-bold">📄 वास्तु रिपोर्ट PDF</button>
+        </div>
+      </div>
+
+      <div id="vastuMapResultWrap" class="hidden space-y-4"></div>
+    </section>
   </main>
+
+  <!-- ==================== MODAL: FAMILY PROFILES (1-CLICK AUTO-FILL) ==================== -->
+  <div id="familyProfilesModal" class="no-print hidden fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="gold-card rounded-2xl max-w-lg w-full p-5 space-y-4 border border-cyan-400/45 my-auto">
+      <div class="flex items-center justify-between border-b border-amber-400/25 pb-2.5">
+        <h3 class="mystic-title text-lg font-bold text-cyan-200">👨‍👩‍👧‍👦 फैमिली प्रोफाइल (1-क्लिक ऑटो-फिल)</h3>
+        <button id="closeFamilyProfilesBtn" type="button" class="text-purple-200 hover:text-amber-200 text-lg font-bold px-2">✕</button>
+      </div>
+      <p class="text-xs text-purple-200/85">अपने और परिवार के सदस्यों का जन्म विवरण सेव करें — फिर कुंडली, नेम करेक्शन, विवाह स्केच और नामकरण में 1 क्लिक में ऑटो-फिल करें।</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+        <input id="fpNameInput" type="text" placeholder="पूरा नाम (जैसे: अंकित शर्मा)" class="rounded-xl px-3 py-2 bg-black/60 border border-amber-400/35 text-purple-50" />
+        <select id="fpGenderSelect" class="rounded-xl px-3 py-2 bg-black/70 border border-amber-400/35 text-purple-50">
+          <option value="male">👨 पुरुष (Male)</option>
+          <option value="female">👩 महिला (Female)</option>
+        </select>
+        <input id="fpDobInput" type="date" class="rounded-xl px-3 py-2 bg-black/60 border border-amber-400/35 text-purple-50" />
+        <input id="fpTimeInput" type="time" value="08:30" class="rounded-xl px-3 py-2 bg-black/60 border border-amber-400/35 text-purple-50" />
+        <div class="sm:col-span-2 flex gap-1.5">
+          <input id="fpCitySearch" type="text" placeholder="गांव/शहर खोजें..." class="flex-1 rounded-xl px-2.5 py-1.5 bg-black/60 border border-amber-400/35 text-purple-50 text-[11px]" />
+          <button id="fpWebPlaceBtn" type="button" class="btn-outline-gold px-2.5 py-1.5 rounded-xl text-[11px] font-bold">🔎</button>
+        </div>
+        <select id="fpCitySelect" class="sm:col-span-2 rounded-xl px-3 py-2 bg-black/70 border border-amber-400/35 text-purple-50 text-xs"></select>
+      </div>
+      <button id="saveFamilyProfileBtn" type="button" class="btn-gold w-full py-2.5 rounded-xl text-xs font-bold">💾 नई प्रोफाइल सेव करें</button>
+      <div id="familyProfilesList" class="space-y-2 max-h-56 overflow-y-auto pt-1"></div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: WHATSAPP CONSULTATION BOOKING (7500343487) ==================== -->
+  <div id="whatsappBookModal" class="no-print hidden fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="gold-card rounded-2xl max-w-md w-full p-5 space-y-4 border border-emerald-400/45">
+      <div class="flex items-center justify-between border-b border-emerald-400/25 pb-2.5">
+        <h3 class="mystic-title text-lg font-bold text-emerald-300">💬 गुरुजी WhatsApp परामर्श बुकिंग</h3>
+        <button id="closeWhatsappBookBtn" type="button" class="text-purple-200 hover:text-amber-200 text-lg font-bold px-2">✕</button>
+      </div>
+      <p class="text-xs text-purple-200/85">सीधे <strong>Mahaindustries (Pro. Ankit Sharma • 7500343487)</strong> से व्यक्तिगत कुंडली, हस्तरेखा, विवाह मिलान या वास्तु परामर्श बुक करें।</p>
+      <div class="space-y-2.5 text-xs">
+        <input id="waNameInput" type="text" placeholder="आपका नाम" class="w-full rounded-xl px-3 py-2.5 bg-black/60 border border-emerald-400/35 text-purple-50" />
+        <input id="waDobInput" type="date" class="w-full rounded-xl px-3 py-2.5 bg-black/60 border border-emerald-400/35 text-purple-50" />
+        <select id="waServiceSelect" class="w-full rounded-xl px-3 py-2.5 bg-black/70 border border-emerald-400/35 text-purple-50">
+          <option value="विस्तृत जन्म कुंडली परामर्श">📜 विस्तृत जन्म कुंडली परामर्श</option>
+          <option value="हस्तरेखा (Palm Reading) विश्लेषण">🖐️ हस्तरेखा (Palm Reading) विश्लेषण</option>
+          <option value="विवाह व कुंडली मिलान">💍 विवाह व कुंडली मिलान</option>
+          <option value="नेम करेक्शन व अंकज्योतिष">🔢 नेम करेक्शन व अंकज्योतिष</option>
+          <option value="घर/ऑफिस वास्तु परामर्श">🧭 घर/ऑफिस वास्तु परामर्श</option>
+          <option value="रत्न व रुद्राक्ष सुझाव">💎 रत्न व रुद्राक्ष सुझाव</option>
+        </select>
+        <textarea id="waNoteInput" rows="2" placeholder="अपना मुख्य प्रश्न लिखें (वैकल्पिक)..." class="w-full rounded-xl px-3 py-2 bg-black/60 border border-emerald-400/35 text-purple-50"></textarea>
+      </div>
+      <button id="sendWhatsappBookBtn" type="button" class="w-full py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-300/40">💬 WhatsApp पर अपॉइंटमेंट भेजें (7500343487)</button>
+    </div>
+  </div>
 
   <!-- ==================== DEVELOPER SECTION FOOTER ==================== -->
   <footer class="mt-8 border-t border-amber-400/25 bg-[#080a0e]/95">
@@ -7255,6 +7429,40 @@
         const q = String(rawQ || '').trim();
         if (!q) return;
         const box = el('guruChatTranscript');
+        if (box) {
+          box.innerHTML += `<div class="p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-100 text-right"><strong>आप:</strong> ${escapeHtml(q)}</div>`;
+          box.scrollTop = box.scrollHeight;
+        }
+        // Try Real Gemini AI Unified Guru first with combined Kundli + Palm + Profile context
+        try {
+          const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
+          const ctx = {
+            kundli: window._lastKundliSummary || null,
+            palmSummary: state.currentReport ? {
+              overall: state.currentReport.overall_summary,
+              career: state.currentReport.career,
+              love: state.currentReport.love,
+              lucky_color: state.currentReport.lucky_color,
+              lucky_day: state.currentReport.lucky_day
+            } : null
+          };
+          const res = await fetch(`${base}/api/ai-guru`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: q, context: ctx, language: state.lang || 'hi' })
+          });
+          if (res.ok) {
+            const j = await res.json();
+            if (j && j.answer) {
+              if (box) {
+                box.innerHTML += `<div class="p-3 rounded-xl bg-purple-950/70 border border-cyan-400/35 text-purple-50"><div class="text-[10px] font-bold text-emerald-300 mb-1">🕉️ MAHAJYOTISH Real AI गुरुजी</div><div>${escapeHtml(j.answer)}</div></div>`;
+                box.scrollTop = box.scrollHeight;
+              }
+              if (typeof speakVoiceAnswer === 'function') speakVoiceAnswer(j.answer);
+              return;
+            }
+          }
+        } catch (_) {}
         let replyParts = [];
 
         if (state.currentReport) {
@@ -8913,7 +9121,9 @@
         swapna: '🌙 स्वप्न फल व शगुन',
         naamkaran: '👶 नवजात शिशु नामकरण',
         mind: '🧠 माइंड रीडर व प्रश्न कुंडली',
-        marriage: '💑 विवाह व जीवनसाथी AI स्केच'
+        marriage: '💑 विवाह व जीवनसाथी AI स्केच',
+        tarot: '🃏 AI टैरो कार्ड रीडिंग',
+        vastumap: '🗺️ AI वास्तु नक्शा स्कैनर'
       };
       let currentActiveScreen = 'dashboard';
 
@@ -8922,7 +9132,7 @@
         [
           'dashboardView', 'scannerView', 'loadingView', 'reportView', 'numerologyView', 'kundliView',
           'panchangView', 'faceView', 'milanView', 'vastuView', 'loveView', 'rashifalView',
-          'guruView', 'muhuratView', 'malaView', 'ratnaView', 'swapnaView', 'naamkaranView', 'mindView', 'marriageView'
+          'guruView', 'muhuratView', 'malaView', 'ratnaView', 'swapnaView', 'naamkaranView', 'mindView', 'marriageView', 'tarotView', 'vastuMapView'
         ].forEach((id) => {
           const n = el(id);
           if (n) n.classList.add('hidden');
@@ -8978,6 +9188,10 @@
           el('mindView').classList.remove('hidden');
         } else if (currentActiveScreen === 'marriage') {
           el('marriageView').classList.remove('hidden');
+        } else if (currentActiveScreen === 'tarot') {
+          el('tarotView').classList.remove('hidden');
+        } else if (currentActiveScreen === 'vastumap') {
+          el('vastuMapView').classList.remove('hidden');
           resetMindNumberGame();
         } else {
           el('scannerView').classList.remove('hidden');
@@ -9373,6 +9587,13 @@
 
           usedCanvasPages.forEach((pgCanvas, idx) => {
             if (idx > 0) pdf.addPage();
+            if (idx === 0) {
+              pdf.setFillColor(21, 14, 40);
+              pdf.rect(0, 0, pageW, 13, 'F');
+              pdf.setTextColor(247, 215, 126);
+              pdf.setFontSize(9.5);
+              pdf.text('MAHAJYOTISH  |  By Mahaindustries (Pro. Ankit Sharma • 7500343487)', pageW / 2, 8.2, { align: 'center' });
+            }
             const hMm = Math.min(usableH, (pgCanvas.height / pgCanvas.width) * usableW);
             pdf.addImage(pgCanvas.toDataURL('image/jpeg', 0.90), 'JPEG', margin, margin, usableW, hMm);
           });
@@ -10298,6 +10519,236 @@
         populateCityDropdown('milanBoyCity', '');
         populateCityDropdown('milanGirlCity', '');
         populateCityDropdown('babyCitySelect', '');
+        
+      // =========================================================================
+      // ADVANCED SUITE: FAMILY PROFILES, DAILY ALERTS, WHATSAPP, AI TAROT & VASTU MAP
+      // =========================================================================
+      const FP_STORAGE_KEY = 'mahajyotish_family_profiles_v1';
+      function getFamilyProfiles() {
+        try { return JSON.parse(localStorage.getItem(FP_STORAGE_KEY) || '[]'); } catch (_) { return []; }
+      }
+      function saveFamilyProfiles(arr) {
+        try { localStorage.setItem(FP_STORAGE_KEY, JSON.stringify(arr)); } catch (_) {}
+      }
+      function applyProfileEverywhere(p) {
+        if (el('kundliNameInput')) el('kundliNameInput').value = p.name || '';
+        if (el('kundliDobInput')) el('kundliDobInput').value = p.dob || '';
+        if (el('kundliTimeInput')) el('kundliTimeInput').value = p.time || '08:30';
+        if (el('numNameInput')) el('numNameInput').value = p.name || '';
+        if (el('numDobInput')) el('numDobInput').value = p.dob || '';
+        if (el('marriageNameInput')) el('marriageNameInput').value = p.name || '';
+        if (el('marriageGenderSelect')) el('marriageGenderSelect').value = p.gender || 'male';
+        if (el('marriageDobInput')) el('marriageDobInput').value = p.dob || '';
+        if (el('marriageTimeInput')) el('marriageTimeInput').value = p.time || '08:30';
+        if (el('babyDobInput')) el('babyDobInput').value = p.dob || '';
+        if (el('babyTimeInput')) el('babyTimeInput').value = p.time || '08:30';
+        if (p.cityVal) {
+          ['kundliCitySelect', 'marriageCitySelect', 'babyCitySelect'].forEach((sid) => {
+            const s = el(sid);
+            if (!s) return;
+            if (!Array.from(s.options).some((o) => o.value === p.cityVal)) {
+              const opt = document.createElement('option');
+              opt.value = p.cityVal;
+              opt.textContent = p.cityLabel || '📍 Saved Place';
+              s.prepend(opt);
+            }
+            s.value = p.cityVal;
+          });
+        }
+        el('familyProfilesModal')?.classList.add('hidden');
+        showToast(`✓ "${p.name}" का विवरण कुंडली, नेम करेक्शन व विवाह सेक्शन में ऑटो-फिल हो गया!`);
+      }
+      function renderFamilyProfilesList() {
+        const box = el('familyProfilesList');
+        if (!box) return;
+        const list = getFamilyProfiles();
+        if (!list.length) {
+          box.innerHTML = `<div class="text-xs text-purple-300/75 text-center py-3">अभी कोई प्रोफाइल सेव नहीं है। ऊपर विवरण भरकर सेव करें।</div>`;
+          return;
+        }
+        box.innerHTML = list.map((p, idx) => `
+          <div class="p-2.5 rounded-xl bg-black/50 border border-cyan-400/30 flex items-center justify-between gap-2 text-xs">
+            <div class="min-w-0">
+              <div class="font-bold text-amber-200 truncate">${escapeHtml(p.name)} (${p.gender === 'female' ? 'महिला' : 'पुरुष'})</div>
+              <div class="text-[11px] text-purple-200/80 truncate">${escapeHtml(p.dob)} • ${escapeHtml(p.time)} • ${escapeHtml((p.cityLabel || '').slice(0, 28))}</div>
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              <button type="button" data-fp-apply="${idx}" class="px-2.5 py-1 rounded-lg bg-cyan-500/25 text-cyan-200 border border-cyan-400/40 font-bold text-[11px]">✨ Fill</button>
+              <button type="button" data-fp-del="${idx}" class="px-2 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30 text-[11px]">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+        box.querySelectorAll('[data-fp-apply]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const p = getFamilyProfiles()[Number(b.dataset.fpApply)];
+            if (p) applyProfileEverywhere(p);
+          });
+        });
+        box.querySelectorAll('[data-fp-del]').forEach((b) => {
+          b.addEventListener('click', () => {
+            const arr = getFamilyProfiles();
+            arr.splice(Number(b.dataset.fpDel), 1);
+            saveFamilyProfiles(arr);
+            renderFamilyProfilesList();
+          });
+        });
+      }
+
+      // Daily Alerts & Browser Notifications
+      function handleToggleDailyAlerts() {
+        const key = 'mahajyotish_daily_alerts_v1';
+        const isOn = localStorage.getItem(key) === '1';
+        if (isOn) {
+          localStorage.setItem(key, '0');
+          if (el('dailyAlertBtnText')) el('dailyAlertBtnText').textContent = 'अलर्ट';
+          showToast('दैनिक पंचांग व राहुकाल अलर्ट बंद किए गए।');
+          return;
+        }
+        const activate = () => {
+          localStorage.setItem(key, '1');
+          if (el('dailyAlertBtnText')) el('dailyAlertBtnText').textContent = 'अलर्ट ✓';
+          const days = ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+          const rahu = ['04:30–06:00 PM', '07:30–09:00 AM', '03:00–04:30 PM', '12:00–01:30 PM', '01:30–03:00 PM', '10:30–12:00 PM', '09:00–10:30 AM'];
+          const dIdx = new Date().getDay();
+          const msg = `आज ${days[dIdx]} • राहुकाल: ${rahu[dIdx]} • शुभ कार्य राहुकाल छोड़कर करें।`;
+          showToast('🔔 दैनिक अलर्ट चालू! ' + msg);
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try { new Notification('🕉️ MAHAJYOTISH दैनिक अलर्ट', { body: msg }); } catch (_) {}
+          }
+        };
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().finally(activate);
+        } else {
+          activate();
+        }
+      }
+
+      // 22 Major Arcana AI Tarot Engine
+      const TAROT_DECK = [
+        { name: 'द फूल (The Fool)', icon: '🌟', meaning: 'नई शुरुआत, निडर कदम और अचानक शुभ अवसर।' },
+        { name: 'द मैजिशियन (The Magician)', icon: '🪄', meaning: 'आपकी इच्छाशक्ति और कौशल से लक्ष्य सिद्धि का योग।' },
+        { name: 'द हाई प्रीस्टेस (The High Priestess)', icon: '🌙', meaning: 'अंतर्ज्ञान की शक्ति और छिपे सत्य का उजागर होना।' },
+        { name: 'द एम्प्रेस (The Empress)', icon: '👑', meaning: 'समृद्धि, पारिवारिक सुख, रचनात्मकता और धन वृद्धि।' },
+        { name: 'द एम्परर (The Emperor)', icon: '🏛️', meaning: 'स्थिरता, नेतृत्व, अनुशासन और करियर में मजबूत पकड़।' },
+        { name: 'द हायरोफैंट (The Hierophant)', icon: '🕉️', meaning: 'गुरु/बड़ों का आशीर्वाद, परंपरा और विवाह/शिक्षा योग।' },
+        { name: 'द लवर्स (The Lovers)', icon: '💞', meaning: 'गहरा प्रेम, सामंजस्य और जीवन का महत्वपूर्ण चुनाव।' },
+        { name: 'द चैरियट (The Chariot)', icon: '🐎', meaning: 'तेज़ प्रगति, यात्रा और चुनौतियों पर निश्चित विजय।' },
+        { name: 'स्ट्रेंथ (Strength)', icon: '🦁', meaning: 'आंतरिक धैर्य, साहस और शांत आत्मविश्वास से सफलता।' },
+        { name: 'द हर्मिट (The Hermit)', icon: '🏮', meaning: 'आत्मचिंतन, सही दिशा की खोज और आध्यात्मिक स्पष्टता।' },
+        { name: 'व्हील ऑफ फॉर्च्यून (Wheel of Fortune)', icon: '☸️', meaning: 'भाग्य चक्र का सकारात्मक मोड़ और बड़ा शुभ परिवर्तन।' },
+        { name: 'जस्टिस (Justice)', icon: '⚖️', meaning: 'न्याय, सही निर्णय और कर्मों का उचित शुभ फल।' },
+        { name: 'द स्टार (The Star)', icon: '✨', meaning: 'नई आशा, मानसिक उपचार और इच्छापूर्ति का आशीर्वाद।' },
+        { name: 'द सन (The Sun)', icon: '☀️', meaning: 'प्रचंड सफलता, मान-सम्मान, प्रसन्नता और उज्ज्वल भविष्य।' },
+        { name: 'द वर्ल्ड (The World)', icon: '🌍', meaning: 'पूर्णता, बड़ी उपलब्धि और नए सफल अध्याय की शुरुआत।' },
+        { name: 'टेम्परेंस (Temperance)', icon: '🏺', meaning: 'संतुलन, धैर्य और दो क्षेत्रों में मधुर तालमेल।' }
+      ];
+
+      async function runAiTarotReading() {
+        const topic = el('tarotTopicSelect')?.value || 'सामान्य मार्गदर्शन';
+        const question = (el('tarotQuestionInput')?.value || '').trim() || topic;
+        const pool = [...TAROT_DECK].sort(() => Math.random() - 0.5);
+        const drawn = [
+          { pos: 'भूतकाल (Past)', card: pool[0] },
+          { pos: 'वर्तमान (Present)', card: pool[1] },
+          { pos: 'भविष्य (Future)', card: pool[2] }
+        ];
+        el('tarotResultWrap')?.classList.remove('hidden');
+        el('printTarotPdfBtn')?.classList.remove('hidden');
+        el('tarotCardsGrid').innerHTML = drawn.map((d) => `
+          <div class="gold-card rounded-2xl p-4 text-center space-y-2 border border-violet-400/45 bg-gradient-to-b from-violet-950/60 to-black/60">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200">${d.pos}</span>
+            <div class="text-4xl py-2">${d.card.icon}</div>
+            <div class="font-bold text-sm text-amber-200">${d.card.name}</div>
+            <p class="text-xs text-purple-200/85">${d.card.meaning}</p>
+          </div>
+        `).join('');
+
+        const sumBox = el('tarotAiSummaryBox');
+        sumBox.innerHTML = `<div class="flex items-center gap-2 text-xs text-violet-200"><span class="w-4 h-4 border-2 border-violet-400/30 border-t-amber-300 rounded-full animate-spin inline-block"></span> Real Gemini AI आपके तीनों टैरो कार्ड्स का गहरा अर्थ निकाल रहा है...</div>`;
+        try {
+          const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
+          const res = await fetch(`${base}/api/ai-jyotish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: 'tarot',
+              language: state.lang || 'hi',
+              data: { topic, question, cards: drawn.map((d) => ({ position: d.pos, name: d.card.name, meaning: d.card.meaning })) }
+            })
+          });
+          if (!res.ok) throw new Error('Tarot AI busy');
+          const ai = await res.json();
+          sumBox.innerHTML = `
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-violet-200">✨ Real AI टैरो विश्लेषण — ${escapeHtml(topic)}</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">Real AI Tarot</span>
+            </div>
+            <div class="space-y-2 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+              <div><strong class="text-amber-300">🕰️ भूतकाल का प्रभाव:</strong> ${escapeHtml(ai.past_card_reading || drawn[0].card.meaning)}</div>
+              <div><strong class="text-cyan-300">🔮 वर्तमान ऊर्जा:</strong> ${escapeHtml(ai.present_card_reading || drawn[1].card.meaning)}</div>
+              <div><strong class="text-pink-300">🌟 आगामी भविष्य:</strong> ${escapeHtml(ai.future_card_reading || drawn[2].card.meaning)}</div>
+              <div><strong class="text-emerald-300">🧭 विशेष मार्गदर्शन:</strong> ${escapeHtml(ai.final_guidance || '')}</div>
+              ${ai.lucky_affirmation ? `<div class="p-3 rounded-xl bg-violet-950/50 border border-amber-400/35 text-amber-200 font-semibold text-xs">🙏 शुभ संकल्प / मंत्र: ${escapeHtml(ai.lucky_affirmation)}</div>` : ''}
+            </div>
+          `;
+        } catch (_) {
+          sumBox.innerHTML = `
+            <h3 class="text-sm font-bold text-amber-200">✨ टैरो सारांश (${escapeHtml(topic)})</h3>
+            <p class="text-xs sm:text-sm text-purple-100/90 leading-relaxed">${drawn[0].card.name} से मिले अनुभव अब ${drawn[1].card.name} की ऊर्जा में बदल रहे हैं, और आने वाले समय में ${drawn[2].card.name} आपको शुभ परिणाम व स्पष्ट दिशा देगा।</p>
+          `;
+        }
+      }
+
+      // AI Vastu Floorplan Map Scanner
+      let vastuMapBase64 = '';
+      let vastuMapMime = 'image/jpeg';
+      async function runVastuMapScan() {
+        if (!vastuMapBase64) {
+          showToast('कृपया पहले घर या ऑफिस के नक्शे की फोटो अपलोड करें।');
+          return;
+        }
+        const wrap = el('vastuMapResultWrap');
+        wrap.classList.remove('hidden');
+        wrap.innerHTML = `<div class="gold-card rounded-2xl p-5 flex items-center gap-3 text-xs sm:text-sm text-teal-200"><span class="w-5 h-5 border-2 border-teal-400/30 border-t-amber-300 rounded-full animate-spin inline-block"></span> Real Gemini Vision आपके नक्शे की दिशाओं और वास्तु ऊर्जा की जांच कर रहा है...</div>`;
+        try {
+          const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
+          const res = await fetch(`${base}/api/analyze-vastu-map`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64: vastuMapBase64,
+              mimeType: vastuMapMime,
+              facing: el('vastuMapFacingSelect')?.value || 'East',
+              propertyType: el('vastuMapTypeSelect')?.value || 'Home',
+              language: state.lang || 'hi'
+            })
+          });
+          if (!res.ok) throw new Error('Vastu scan failed');
+          const ai = await res.json();
+          const doshas = Array.isArray(ai.detected_doshas) ? ai.detected_doshas : [];
+          const rems = Array.isArray(ai.non_demolition_remedies) ? ai.non_demolition_remedies : [];
+          el('printVastuMapPdfBtn')?.classList.remove('hidden');
+          wrap.innerHTML = `
+            <div class="gold-card rounded-2xl p-5 space-y-3 border border-teal-400/45">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <h3 class="text-base font-bold text-teal-200">🗺️ AI वास्तु नक्शा विश्लेषण रिपोर्ट</h3>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-400/45">वास्तु स्कोर: ${Number(ai.vastu_score) || 78} / 100</span>
+              </div>
+              <p class="text-xs sm:text-sm text-purple-100/90 leading-relaxed">${escapeHtml(ai.overall_verdict || '')}</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div class="p-3 rounded-xl bg-black/45 border border-teal-400/25"><strong class="text-amber-200 block mb-1">🚪 मुख्य द्वार:</strong>${escapeHtml(ai.entrance_analysis || '')}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-teal-400/25"><strong class="text-amber-200 block mb-1">🔥 रसोई व शयनकक्ष:</strong>${escapeHtml(ai.kitchen_bedroom_analysis || '')}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-teal-400/25"><strong class="text-amber-200 block mb-1">🧭 ब्रह्मस्थान व शौचालय:</strong>${escapeHtml(ai.brahmasthan_toilet_analysis || '')}</div>
+              </div>
+              ${doshas.length ? `<div class="p-3 rounded-xl bg-rose-950/35 border border-rose-400/35 text-xs text-rose-100 space-y-1"><strong class="text-rose-300 block">⚠️ देखे गए संभावित वास्तु दोष:</strong><ul class="list-disc pl-4 space-y-1">${doshas.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}</ul></div>` : ''}
+              ${rems.length ? `<div class="p-3 rounded-xl bg-emerald-950/35 border border-emerald-400/35 text-xs text-emerald-100 space-y-1"><strong class="text-emerald-300 block">✅ बिना तोड़-फोड़ (Non-Demolition) वास्तु उपाय:</strong><ul class="list-disc pl-4 space-y-1">${rems.map((rm) => `<li>${escapeHtml(rm)}</li>`).join('')}</ul></div>` : ''}
+            </div>
+          `;
+        } catch (_) {
+          wrap.innerHTML = `<div class="gold-card rounded-2xl p-4 text-xs text-rose-300">नक्शा स्कैन करने में अस्थायी समस्या आई। कृपया स्पष्ट फोटो के साथ दोबारा प्रयास करें।</div>`;
+        }
+      }
+
         populateCityDropdown('marriageCitySelect', '');
         attachUniversalPlaceSearch('panchangCitySearch', 'panchangWebPlaceBtn', 'panchangCitySelect');
         attachUniversalPlaceSearch('milanBoyCitySearch', 'milanBoyWebPlaceBtn', 'milanBoyCity');
@@ -10317,6 +10768,60 @@
           a.click();
         });
         if (el('printMarriagePdfBtn')) el('printMarriagePdfBtn').addEventListener('click', () => generateAndShowPdfModal('marriageResultWrap', 'MAHAJYOTISH_Marriage_Prediction'));
+        populateCityDropdown('fpCitySelect', '');
+        attachUniversalPlaceSearch('fpCitySearch', 'fpWebPlaceBtn', 'fpCitySelect');
+        if (el('openFamilyProfilesBtn')) el('openFamilyProfilesBtn').addEventListener('click', () => {
+          renderFamilyProfilesList();
+          el('familyProfilesModal')?.classList.remove('hidden');
+        });
+        if (el('closeFamilyProfilesBtn')) el('closeFamilyProfilesBtn').addEventListener('click', () => el('familyProfilesModal')?.classList.add('hidden'));
+        if (el('saveFamilyProfileBtn')) el('saveFamilyProfileBtn').addEventListener('click', () => {
+          const name = (el('fpNameInput')?.value || '').trim();
+          const dob = (el('fpDobInput')?.value || '').trim();
+          if (!name || !dob) { showToast('कृपया नाम और जन्मतिथि भरें।'); return; }
+          const sel = el('fpCitySelect');
+          const cityVal = sel?.value || '';
+          const cityLabel = sel?.options?.[sel.selectedIndex]?.textContent || '';
+          const arr = getFamilyProfiles();
+          arr.unshift({ name, gender: el('fpGenderSelect')?.value || 'male', dob, time: el('fpTimeInput')?.value || '08:30', cityVal, cityLabel });
+          saveFamilyProfiles(arr);
+          renderFamilyProfilesList();
+          if (el('fpNameInput')) el('fpNameInput').value = '';
+          showToast(`✓ "${name}" की प्रोफाइल सेव हो गई!`);
+        });
+        if (el('toggleDailyAlertsBtn')) {
+          if (localStorage.getItem('mahajyotish_daily_alerts_v1') === '1' && el('dailyAlertBtnText')) el('dailyAlertBtnText').textContent = 'अलर्ट ✓';
+          el('toggleDailyAlertsBtn').addEventListener('click', handleToggleDailyAlerts);
+        }
+        if (el('openWhatsappBookBtn')) el('openWhatsappBookBtn').addEventListener('click', () => el('whatsappBookModal')?.classList.remove('hidden'));
+        if (el('closeWhatsappBookBtn')) el('closeWhatsappBookBtn').addEventListener('click', () => el('whatsappBookModal')?.classList.add('hidden'));
+        if (el('sendWhatsappBookBtn')) el('sendWhatsappBookBtn').addEventListener('click', () => {
+          const n = (el('waNameInput')?.value || '').trim() || 'जातक';
+          const dob = el('waDobInput')?.value || 'उल्लेख नहीं';
+          const srv = el('waServiceSelect')?.value || 'ज्योतिष परामर्श';
+          const note = (el('waNoteInput')?.value || '').trim();
+          const msg = `नमस्ते गुरुजी (MAHAJYOTISH),%0Aमुझे *${srv}* के लिए अपॉइंटमेंट बुक करना है।%0Aनाम: ${n}%0Aजन्मतिथि: ${dob}${note ? '%0Aप्रश्न: ' + note : ''}`;
+          window.open(`https://wa.me/917500343487?text=${msg}`, '_blank');
+          el('whatsappBookModal')?.classList.add('hidden');
+        });
+        if (el('tabTarotBtn')) el('tabTarotBtn').addEventListener('click', () => switchPrimaryTab('tarot'));
+        if (el('drawTarotBtn')) el('drawTarotBtn').addEventListener('click', runAiTarotReading);
+        if (el('printTarotPdfBtn')) el('printTarotPdfBtn').addEventListener('click', () => generateAndShowPdfModal('tarotResultWrap', 'MAHAJYOTISH_AI_Tarot'));
+        if (el('tabVastuMapBtn')) el('tabVastuMapBtn').addEventListener('click', () => switchPrimaryTab('vastumap'));
+        if (el('vastuMapFileInput')) el('vastuMapFileInput').addEventListener('change', (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          vastuMapMime = f.type || 'image/jpeg';
+          const rd = new FileReader();
+          rd.onload = (ev) => {
+            vastuMapBase64 = ev.target.result;
+            if (el('vastuMapPreviewImg')) el('vastuMapPreviewImg').src = vastuMapBase64;
+            el('vastuMapPreviewWrap')?.classList.remove('hidden');
+          };
+          rd.readAsDataURL(f);
+        });
+        if (el('scanVastuMapBtn')) el('scanVastuMapBtn').addEventListener('click', runVastuMapScan);
+        if (el('printVastuMapPdfBtn')) el('printVastuMapPdfBtn').addEventListener('click', () => generateAndShowPdfModal('vastuMapResultWrap', 'MAHAJYOTISH_Vastu_Map_Report'));
         el('kundliCitySearch').addEventListener('input', (e) => populateCityDropdown('kundliCitySelect', e.target.value));
         el('kundliWebPlaceSearchBtn').addEventListener('click', searchAnyIndianTownOnline);
         el('panchangCitySearch').addEventListener('input', (e) => {

@@ -357,6 +357,15 @@ Return ONLY valid JSON with keys:
 - first_meeting_story (3 sentences on how and where you are likely to meet)
 - marriage_remedies (array of 3 practical Vedic remedies for timely & happy marriage)
 - sketch_prompt_en (a concise, photorealistic hand-drawn graphite pencil portrait prompt in English describing the future spouse's face based on gender=${data.spouseGender || 'female'}, age=${data.spouseAge || '25'}, Indian ethnicity, eyes, smile, hairstyle, traditional-modern attire, soft shading on cream sketch paper — strictly no text, no watermark)`;
+        } else if (mode === 'tarot') {
+          prompt = `You are a Master Vedic & Intuitive Tarot Reader. Provide a UNIQUE, deeply insightful 3-Card Tarot Reading in ${targetLang} for this user's exact question and drawn cards:
+${JSON.stringify(data).slice(0, 4000)}
+Return ONLY valid JSON with keys:
+- past_card_reading (2-3 sentences on how the Past card shaped their situation)
+- present_card_reading (2-3 sentences on current energies & hidden factors)
+- future_card_reading (3 sentences on upcoming outcome & timeline)
+- final_guidance (2-3 sentences of clear, empowering practical advice)
+- lucky_affirmation (1 uplifting Hindi/English mantra or affirmation)`;
         } else {
           return jsonRes({ error: 'INVALID_MODE', message: 'Unsupported mode.' }, 400);
         }
@@ -515,6 +524,68 @@ Use warm cream sketchbook paper gradient (#f7f1e3 to #e8dcc4), fine graphite/cha
         });
       } catch (err) {
         return jsonRes({ error: 'SKETCH_FAILED', message: err?.message || 'Sketch generation failed.' }, 500);
+      }
+    }
+
+    // 6b. Real-Time Unified AI Jyotish Guru (Kundli + Palm + Numerology + Profile)
+    if (path === '/api/ai-guru' && request.method === 'POST') {
+      try {
+        if (!apiKey) return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY.' }, 503);
+        const { question, context = {}, language = 'hi' } = await request.json().catch(() => ({}));
+        if (!question) return jsonRes({ error: 'MISSING_QUESTION', message: 'Question required.' }, 400);
+        const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, आत्मीय और सटीक वैदिक गुरुजी शैली की हिंदी)';
+        const prompt = `You are MAHAJYOTISH Acharya AI Guru — a compassionate, deeply knowledgeable Vedic Astrologer, Palmist, Numerologist & Vastu Expert.
+Answer the user's question in ${targetLang} in 4-6 clear, warm sentences suitable for both reading and voice playback. Use their available chart/palm/profile context below if present (never invent chart details not given; give practical Vedic remedies where helpful):
+Context: ${JSON.stringify(context).slice(0, 6000)}
+User Question: ${question}`;
+        const result = await callGemini(apiKey, model, {
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.65, maxOutputTokens: 700 }
+        });
+        if (!result.ok) return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}` }, 502);
+        const answer = result.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        return jsonRes({ answer, model: result.usedModel });
+      } catch (err) {
+        return jsonRes({ error: 'GURU_FAILED', message: err?.message || 'AI Guru failed.' }, 500);
+      }
+    }
+
+    // 6c. AI Vastu Floorplan / Home Map Vision Scanner
+    if (path === '/api/analyze-vastu-map' && request.method === 'POST') {
+      try {
+        if (!apiKey) return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY.' }, 503);
+        const { imageBase64, mimeType = 'image/jpeg', facing = 'East', propertyType = 'Home', language = 'hi' } = await request.json().catch(() => ({}));
+        if (!imageBase64) return jsonRes({ error: 'MISSING_IMAGE', message: 'Floorplan image required.' }, 400);
+        const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '').trim();
+        const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, व्यावहारिक वास्तु शास्त्र हिंदी)';
+        const prompt = `You are a Senior Indian Vastu Shastra & Architectural Floorplan Expert.
+Analyze this uploaded ${propertyType} floorplan/map image assuming the main entrance/facing direction is ${facing}. Write all text in ${targetLang}.
+Return ONLY valid JSON with keys:
+- vastu_score (integer 45 to 96)
+- overall_verdict (2-3 sentences summarizing energy flow)
+- entrance_analysis (2 sentences)
+- kitchen_bedroom_analysis (3 sentences)
+- brahmasthan_toilet_analysis (2-3 sentences)
+- detected_doshas (array of 3-4 concise observed Vastu issues)
+- non_demolition_remedies (array of 4-5 practical बिना तोड़-फोड़ Vastu remedies using colors, mirrors, salt, plants, pyramid, lighting)`;
+        const result = await callGemini(apiKey, model, {
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
+            ]
+          }],
+          generationConfig: { temperature: 0.45, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+        });
+        if (!result.ok) return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}` }, 502);
+        const jsonStr = extractJson(result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+        if (!jsonStr) return jsonRes({ error: 'INVALID_AI_RESPONSE', message: 'Non-JSON Vastu output.' }, 502);
+        const parsed = JSON.parse(jsonStr);
+        parsed._meta = { mode: 'real_ai', model: result.usedModel };
+        return jsonRes(parsed);
+      } catch (err) {
+        return jsonRes({ error: 'VASTU_MAP_FAILED', message: err?.message || 'Vastu map scan failed.' }, 500);
       }
     }
 
