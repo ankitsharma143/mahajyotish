@@ -48,7 +48,7 @@ export default {
       });
     }
 
-    const apiKey = String((env && (env.MY_GEMINI_KEY || env.GEMINI_API_KEY || env.GOOGLE_AI_KEY)) || '').trim();
+    const apiKey = String((env && (env.MY_GEMINI_KEY || env.GEMINI_API_KEY || env.GOOGLE_AI_KEY || env.GEMINI_KEY || env.API_KEY)) || '').trim();
     const model = String((env && env.GEMINI_MODEL) || 'gemini-2.5-flash').trim();
 
     // 1. Health Check
@@ -57,6 +57,7 @@ export default {
         status: 'ok',
         platform: 'cloudflare-worker',
         aiConfigured: Boolean(apiKey),
+        envKeys: env ? Object.keys(env) : [],
         model,
         timestamp: new Date().toISOString()
       });
