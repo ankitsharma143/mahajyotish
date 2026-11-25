@@ -48,7 +48,7 @@ export default {
       });
     }
 
-    const apiKey = String((env && env.GEMINI_API_KEY) || '').trim();
+    const apiKey = String((env && (env.MY_GEMINI_KEY || env.GEMINI_API_KEY || env.GOOGLE_AI_KEY)) || '').trim();
     const model = String((env && env.GEMINI_MODEL) || 'gemini-2.5-flash').trim();
 
     // 1. Health Check
