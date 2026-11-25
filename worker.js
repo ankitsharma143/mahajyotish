@@ -31,6 +31,37 @@ function extractJson(raw) {
   return a !== -1 && b > a ? s.slice(a, b + 1) : null;
 }
 
+async function callGemini(apiKey, preferredModel, payload) {
+  const candidates = Array.from(new Set([
+    preferredModel,
+    'gemini-3.8-flash',
+    'gemini-3.5-flash',
+    'gemini-3.0-flash',
+    'gemini-2.5-flash'
+  ].filter(Boolean)));
+
+  let lastStatus = 502;
+  let lastErr = '';
+  for (const m of candidates) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, data, usedModel: m };
+    }
+    lastStatus = res.status;
+    lastErr = await res.text().catch(() => '');
+    if (res.status !== 404) {
+      break;
+    }
+  }
+  return { ok: false, status: lastStatus, errTxt: lastErr };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -49,7 +80,7 @@ export default {
     }
 
     const apiKey = String((env && (env.MY_GEMINI_KEY || env.GEMINI_API_KEY || env.GOOGLE_AI_KEY || env.GEMINI_KEY || env.API_KEY)) || '').trim();
-    const model = String((env && env.GEMINI_MODEL) || 'gemini-2.5-flash').trim();
+    const model = String((env && env.GEMINI_MODEL) || 'gemini-3.8-flash').trim();
 
     // 1. Health Check
     if (path === '/api/health' && request.method === 'GET') {
@@ -67,7 +98,7 @@ export default {
     if (path === '/api/analyze-palm' && request.method === 'POST') {
       try {
         if (!apiKey) {
-          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set GEMINI_API_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
+          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
         }
         const body = await request.json().catch(() => ({}));
         const { imageBase64, mimeType = 'image/jpeg', handSide = 'right', language = 'hi' } = body;
@@ -87,29 +118,22 @@ STRICT RULES:
 - Never predict death, serious illness, or exact marriage dates.
 Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordinates, and life_pillar_scores.`;
 
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              role: 'user',
-              parts: [
-                { text: promptText },
-                { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
-              ]
-            }],
-            generationConfig: { temperature: 0.45, topP: 0.9, maxOutputTokens: 8192, responseMimeType: 'application/json' }
-          })
+        const result = await callGemini(apiKey, model, {
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: promptText },
+              { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
+            ]
+          }],
+          generationConfig: { temperature: 0.45, topP: 0.9, maxOutputTokens: 8192, responseMimeType: 'application/json' }
         });
 
-        if (!res.ok) {
-          const errTxt = await res.text().catch(() => '');
-          return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${res.status}: ${errTxt.slice(0, 200)}` }, 502);
+        if (!result.ok) {
+          return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}: ${result.errTxt.slice(0, 220)}` }, 502);
         }
 
-        const apiJson = await res.json();
-        const rawText = apiJson?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const rawText = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const jsonStr = extractJson(rawText);
         if (!jsonStr) {
           return jsonRes({ error: 'INVALID_AI_RESPONSE', message: 'Gemini returned non-JSON output.' }, 502);
@@ -118,7 +142,7 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
         for (const f of REQUIRED_FIELDS) {
           if (parsed[f] === undefined || parsed[f] === null || parsed[f] === '') parsed[f] = 'not_visible';
         }
-        parsed._meta = { mode: 'real_ai', model, platform: 'cloudflare-worker', language, generated_at: new Date().toISOString() };
+        parsed._meta = { mode: 'real_ai', model: result.usedModel, platform: 'cloudflare-worker', language, generated_at: new Date().toISOString() };
         return jsonRes(parsed);
       } catch (err) {
         return jsonRes({ error: 'ANALYSIS_FAILED', message: err?.message || 'Palm analysis failed.' }, 500);
@@ -129,7 +153,7 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
     if (path === '/api/analyze-face' && request.method === 'POST') {
       try {
         if (!apiKey) {
-          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set GEMINI_API_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
+          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
         }
         const { imageBase64, mimeType = 'image/jpeg', language = 'hi' } = await request.json().catch(() => ({}));
         if (!imageBase64) return jsonRes({ error: 'MISSING_IMAGE', message: 'Face image required.' }, 400);
@@ -138,20 +162,17 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
         const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, सम्मानजनक पारंपरिक सामुद्रिक शास्त्र हिंदी)';
         const prompt = `You are a Traditional Samudrika Shastra (Face Reading) Expert. Analyze ONLY clearly visible facial features in ${targetLang}. Return ONLY valid JSON with keys: overall_nature, face_shape, forehead, eyebrows, eyes, nose, lips_mouth, chin_jaw, ears (each having trait, strength, weakness, confidence), career_and_social_nature, improvement_advice, disclaimer.`;
 
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { mimeType, data: cleanBase64 } }] }],
-            generationConfig: { temperature: 0.45, maxOutputTokens: 4096, responseMimeType: 'application/json' }
-          })
+        const result = await callGemini(apiKey, model, {
+          contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }] }],
+          generationConfig: { temperature: 0.45, maxOutputTokens: 4096, responseMimeType: 'application/json' }
         });
-        const apiJson = await res.json();
-        const jsonStr = extractJson(apiJson?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+        if (!result.ok) {
+          return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}: ${result.errTxt.slice(0, 220)}` }, 502);
+        }
+        const jsonStr = extractJson(result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
         if (!jsonStr) return jsonRes({ error: 'INVALID_AI_RESPONSE', message: 'Empty response from Gemini.' }, 502);
         const parsed = JSON.parse(jsonStr);
-        parsed._meta = { mode: 'real_ai', model, platform: 'cloudflare-worker', generated_at: new Date().toISOString() };
+        parsed._meta = { mode: 'real_ai', model: result.usedModel, platform: 'cloudflare-worker', generated_at: new Date().toISOString() };
         return jsonRes(parsed);
       } catch (err) {
         return jsonRes({ error: 'FACE_ANALYSIS_FAILED', message: err?.message || 'Face analysis failed.' }, 500);
@@ -162,7 +183,7 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
     if (path === '/api/ask-palm' && request.method === 'POST') {
       try {
         if (!apiKey) {
-          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set GEMINI_API_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
+          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
         }
         const { question, report, language = 'hi' } = await request.json().catch(() => ({}));
         if (!question) return jsonRes({ error: 'MISSING_QUESTION', message: 'Question is required.' }, 400);
@@ -170,17 +191,14 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
         const targetLang = language === 'en' ? 'English' : 'Hindi (सरल बोलचाल की हिंदी)';
         const prompt = `Answer concisely (3-5 sentences for voice playback) in ${targetLang} based ONLY on this palm report JSON: ${JSON.stringify(report || {}).slice(0, 12000)}\nQuestion: ${question}`;
 
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.5, maxOutputTokens: 512 }
-          })
+        const result = await callGemini(apiKey, model, {
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.5, maxOutputTokens: 512 }
         });
-        const apiJson = await res.json();
-        const answer = apiJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        if (!result.ok) {
+          return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}: ${result.errTxt.slice(0, 220)}` }, 502);
+        }
+        const answer = result.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
         return jsonRes({ answer });
       } catch (err) {
         return jsonRes({ error: 'QA_FAILED', message: err?.message || 'Voice Q&A failed.' }, 500);
