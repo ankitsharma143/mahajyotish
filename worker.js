@@ -49,7 +49,7 @@ async function callGemini(apiKey, preferredModel, payload) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(25000)
       });
       if (res.ok) {
         const data = await res.json();
@@ -122,7 +122,8 @@ STRICT RULES:
 - Describe ONLY clearly visible features. Mark unclear lines as "not_visible" and return [] for their coordinates.
 - Provide normalized [0,1000] polyline coordinates in line_coordinates (life_line, head_line, heart_line, fate_line, sun_line) ONLY where visually verifiable.
 - Never predict death, serious illness, or exact marriage dates.
-Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordinates, and life_pillar_scores.`;
+Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordinates, and life_pillar_scores.
+Ensure "detected_features" is an object with keys: hand_analyzed, palm_type, finger_proportions, thumb_characteristics, life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines (set each line to "clear", "moderate", "faint", or "not_visible").`;
 
         const result = await callGemini(apiKey, model, {
           contents: [{
@@ -147,6 +148,14 @@ Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordi
         const parsed = JSON.parse(jsonStr);
         for (const f of REQUIRED_FIELDS) {
           if (parsed[f] === undefined || parsed[f] === null || parsed[f] === '') parsed[f] = 'not_visible';
+        }
+        if (!parsed.detected_features || typeof parsed.detected_features !== 'object' || Array.isArray(parsed.detected_features)) {
+          parsed.detected_features = {};
+        }
+        for (const lk of ['life_line', 'head_line', 'heart_line', 'fate_line', 'sun_line', 'mercury_line', 'relationship_lines']) {
+          if (!parsed.detected_features[lk]) {
+            parsed.detected_features[lk] = parsed[lk] && parsed[lk] !== 'not_visible' ? 'visible' : 'not_visible';
+          }
         }
         parsed._meta = { mode: 'real_ai', model: result.usedModel, platform: 'cloudflare-worker', language, generated_at: new Date().toISOString() };
         return jsonRes(parsed);
