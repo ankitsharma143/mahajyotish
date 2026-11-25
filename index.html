@@ -1460,7 +1460,7 @@
 
               <!-- Anatomically Wide, Resizable, Auto-Mirrored Palm Guide SVG -->
               <div id="palmGuideWrap" class="pointer-events-none absolute inset-0 flex items-center justify-center p-3 transition-transform duration-150">
-                <svg id="palmGuideSvg" class="w-full h-full max-w-[400px] max-h-[520px] drop-shadow-[0_0_8px_rgba(247,215,126,0.45)]" viewBox="0 0 360 480" fill="none" preserveAspectRatio="xMidYMid meet">
+                <svg id="palmGuideSvg" class="w-[94%] h-[94%] max-w-[500px] max-h-[640px] drop-shadow-[0_0_8px_rgba(247,215,126,0.45)]" viewBox="0 0 360 480" fill="none" preserveAspectRatio="xMidYMid meet">
                   <!-- Soft palm center target zone -->
                   <ellipse cx="192" cy="300" rx="76" ry="86" fill="rgba(247,215,126,0.06)" stroke="rgba(34,211,238,0.45)" stroke-width="1.5" stroke-dasharray="5 5" />
                   <!-- Spacious Natural Open Palm & 5 Fingers Silhouette (Thumb on left for Right Palm facing camera) -->
@@ -3070,7 +3070,7 @@
         }
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: state.facingMode, width: { ideal: 1080 }, height: { ideal: 1440 } },
+            video: { facingMode: state.facingMode, width: { ideal: 1920 }, height: { ideal: 2560 } },
             audio: false
           });
           state.cameraStream = stream;
@@ -3434,7 +3434,7 @@
             <button type="button" class="accordion-toggle w-full px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-amber-400/5 transition">
               <div class="flex items-center gap-2.5 min-w-0">
                 <span class="text-base shrink-0">${icon}</span>
-                <span class="font-bold text-sm sm:text-base text-amber-200 truncate">${escapeHtml(title)}</span>
+                <span class="font-bold text-sm sm:text-base text-amber-200 leading-snug break-words py-0.5">${escapeHtml(title)}</span>
                 ${confidence ? formatConfidencePill(confidence) : ''}
               </div>
               <svg class="accordion-chevron w-4 h-4 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -3547,7 +3547,7 @@
         el('detectedLinesChips').innerHTML = Object.keys(LINE_META)
           .map((k) => {
             const meta = LINE_META[k];
-            const level = vis[k] || r[k]?.confidence || 'not_visible';
+            const level = vis[k] || r.detected_features?.[k] || r[k]?.confidence || (Array.isArray(r.line_coordinates?.[k]) && r.line_coordinates[k].length ? 'medium' : '') || (typeof r[k] === 'string' && r[k].trim() && r[k] !== 'not_visible' ? 'medium' : 'not_visible');
             return `
               <div class="p-2.5 rounded-xl bg-black/40 border border-purple-400/20 flex flex-col gap-1">
                 <div class="font-semibold text-purple-100 flex items-center gap-1.5">
@@ -9082,6 +9082,11 @@
                     if (cs && cs.backgroundColor && cs.backgroundColor.includes('oklch')) {
                       elNode.style.backgroundColor = '#150e28';
                     }
+                  });
+                  doc.querySelectorAll('.accordion-toggle, .accordion-toggle span, h1, h2, h3, h4').forEach((node) => {
+                    node.style.overflow = 'visible';
+                    node.style.whiteSpace = 'normal';
+                    node.style.lineHeight = '1.55';
                   });
                 }
               });
