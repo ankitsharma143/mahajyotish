@@ -34,8 +34,8 @@ function extractJson(raw) {
 async function callGemini(apiKey, preferredModel, payload) {
   const candidates = Array.from(new Set([
     preferredModel,
-    'gemini-3.8-flash',
-    'gemini-2.5-flash-lite'
+    'gemini-3.5-flash-lite',
+    'gemini-3.8-flash'
   ].filter(Boolean)));
 
   const retryStatuses = new Set([404, 429, 500, 502, 503, 504]);
@@ -86,7 +86,7 @@ export default {
     }
 
     const apiKey = String((env && (env.MY_GEMINI_KEY || env.GEMINI_API_KEY || env.GOOGLE_AI_KEY || env.GEMINI_KEY || env.API_KEY)) || '').trim();
-    const model = String((env && env.GEMINI_MODEL) || 'gemini-3.8-flash').trim();
+    const model = String((env && env.GEMINI_MODEL) || 'gemini-3.5-flash-lite').trim();
 
     // 1. Health Check
     if (path === '/api/health' && request.method === 'GET') {
