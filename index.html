@@ -9096,10 +9096,39 @@
                 const imgH = fullCanvas.height;
                 const pxPerMm = imgW / usableW;
                 const sliceHeightPx = Math.floor(usableH * pxPerMm);
+                const targetRect = targetEl.getBoundingClientRect();
+                const scaleFactor = targetRect.height > 0 ? (imgH / targetRect.height) : 1.35;
+                const atomicBlocks = [];
+                targetEl.querySelectorAll('.accordion-item, .gold-card, #detectedLinesChips > div, .grid > div, canvas, li, p').forEach((node) => {
+                  const nr = node.getBoundingClientRect();
+                  const topPx = Math.floor((nr.top - targetRect.top) * scaleFactor);
+                  const botPx = Math.ceil((nr.bottom - targetRect.top) * scaleFactor);
+                  const boxH = botPx - topPx;
+                  if (boxH > 14 && boxH <= sliceHeightPx * 0.88 && topPx >= 0 && botPx <= imgH) {
+                    atomicBlocks.push({ top: topPx, bottom: botPx });
+                  }
+                });
                 usedCanvasPages = [];
                 let offsetY = 0;
                 while (offsetY < imgH) {
-                  const hPx = Math.min(sliceHeightPx, imgH - offsetY);
+                  let cutY = Math.min(offsetY + sliceHeightPx, imgH);
+                  if (cutY < imgH) {
+                    for (let pass = 0; pass < 3; pass++) {
+                      let bestTop = cutY;
+                      for (let i = 0; i < atomicBlocks.length; i++) {
+                        const b = atomicBlocks[i];
+                        if (b.top < cutY && b.bottom > cutY && b.top > offsetY + 60) {
+                          if (b.top < bestTop) bestTop = b.top;
+                        }
+                      }
+                      if (bestTop < cutY) {
+                        cutY = Math.max(offsetY + 60, bestTop - 6);
+                      } else {
+                        break;
+                      }
+                    }
+                  }
+                  const hPx = Math.max(1, cutY - offsetY);
                   const sc = document.createElement('canvas');
                   sc.width = imgW;
                   sc.height = hPx;
@@ -9108,7 +9137,7 @@
                   sCtx.fillRect(0, 0, imgW, hPx);
                   sCtx.drawImage(fullCanvas, 0, offsetY, imgW, hPx, 0, 0, imgW, hPx);
                   usedCanvasPages.push(sc);
-                  offsetY += hPx;
+                  offsetY = cutY;
                 }
               }
             } catch (h2cErr) {
