@@ -127,11 +127,11 @@ export default {
         const promptText = `You are an Expert Gemini AI Vision Engineer and Traditional Palmistry Expert.
 Analyze the ACTUAL uploaded palm image (${handLabel}). Write all narrative text in ${targetLang}.
 STRICT RULES:
-- Describe ONLY clearly visible features. Mark unclear lines as "not_visible" and return [] for their coordinates.
-- Provide normalized [0,1000] polyline coordinates in line_coordinates (life_line, head_line, heart_line, fate_line, sun_line) ONLY where visually verifiable.
+- Carefully inspect the full palm at high detail and analyze ALL 7 lines (life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines). Even if secondary lines are faint or thin, describe what is observable and mark visibility as "low" or "medium" rather than "not_visible" unless completely cropped or blurred out.
+- Provide normalized [0,1000] polyline coordinates in line_coordinates (life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines) wherever visually traceable.
 - Never predict death, serious illness, or exact marriage dates.
 Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordinates, and life_pillar_scores.
-Ensure "detected_features" is an object with keys: hand_analyzed, palm_type, finger_proportions, thumb_characteristics, life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines (set each line to "clear", "moderate", "faint", or "not_visible").`;
+Ensure "detected_features" is an object containing: hand_analyzed, palm_type, finger_proportions, thumb_characteristics, and "line_visibility" (an object with keys life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines, each set to "high", "medium", "low", or "not_visible").`;
 
         const result = await callGemini(apiKey, model, {
           contents: [{
@@ -160,9 +160,19 @@ Ensure "detected_features" is an object with keys: hand_analyzed, palm_type, fin
         if (!parsed.detected_features || typeof parsed.detected_features !== 'object' || Array.isArray(parsed.detected_features)) {
           parsed.detected_features = {};
         }
+        if (!parsed.detected_features.line_visibility || typeof parsed.detected_features.line_visibility !== 'object') {
+          parsed.detected_features.line_visibility = {};
+        }
         for (const lk of ['life_line', 'head_line', 'heart_line', 'fate_line', 'sun_line', 'mercury_line', 'relationship_lines']) {
-          if (!parsed.detected_features[lk]) {
-            parsed.detected_features[lk] = parsed[lk] && parsed[lk] !== 'not_visible' ? 'visible' : 'not_visible';
+          const cur = parsed.detected_features.line_visibility[lk] || parsed.detected_features[lk];
+          if (cur && cur !== 'not_visible') {
+            parsed.detected_features.line_visibility[lk] = cur === 'clear' || cur === 'visible' ? 'high' : cur === 'moderate' ? 'medium' : cur === 'faint' ? 'low' : cur;
+          } else if (Array.isArray(parsed.line_coordinates?.[lk]) && parsed.line_coordinates[lk].length > 0) {
+            parsed.detected_features.line_visibility[lk] = 'medium';
+          } else if (typeof parsed[lk] === 'string' && parsed[lk].trim() && parsed[lk] !== 'not_visible') {
+            parsed.detected_features.line_visibility[lk] = 'medium';
+          } else {
+            parsed.detected_features.line_visibility[lk] = 'not_visible';
           }
         }
         parsed._meta = { mode: 'real_ai', model: result.usedModel, platform: 'cloudflare-worker', language, generated_at: new Date().toISOString() };
