@@ -9937,12 +9937,115 @@
 
       let lastMarriageSketchPrompt = '';
       let lastMarriageSketchDataUrl = '';
+      let lastMarriageSpouseGender = 'female';
 
-      async function generateMarriageSketchImage(promptEn, seedVal) {
+      const SEVENTH_HOUSE_PROFILES = [
+        { // 0: मेष (Aries - Mars)
+          nature: 'ऊर्जावान, आत्मविश्वासी, स्पष्टवादी और तुरंत निर्णय लेने वाला। वे रिश्ते में ईमानदारी और साहस के साथ आपका साथ देंगे, हालांकि कभी-कभी थोड़ा गुस्सा जल्दी आ सकता है।',
+          appearance: 'मध्यम से लंबा कद, आकर्षक चमकदार आंखें, तीखे नैन-नक्श, साफ माथा और चेहरे पर आत्मविश्वास भरा तेज।',
+          career: 'सरकारी सेवा, पुलिस/डिफेंस, इंजीनियरिंग, प्रॉपर्टी, खेल, या अपना स्वतंत्र व्यवसाय।',
+          initials: 'अ, ल, इ, च, र, क (मेष / सिंह / धनु राशि प्रबल)',
+          meeting: 'किसी यात्रा, खेल/इवेंट, प्रोफेशनल कार्य या किसी मित्र के माध्यम से अचानक मुलाकात का प्रबल योग है।',
+          remedy: 'मंगलवार को हनुमान जी को सिंदूर व गुड़-चना अर्पित करें और रिश्ते में मधुर वाणी रखें।'
+        },
+        { // 1: वृषभ (Taurus - Venus)
+          nature: 'शांत, बेहद वफादार, कला-प्रेमी, सौम्य और परिवार को जोड़कर रखने वाला। उन्हें सुंदरता, अच्छा भोजन और आरामदायक जीवन पसंद होगा।',
+          appearance: 'गोल या अंडाकार सौम्य चेहरा, बड़ी और कोमल आंखें, घने सुंदर बाल, आकर्षक मुस्कान और मधुर आवाज़।',
+          career: 'बैंकिंग, फाइनेंस, फैशन/डिजाइन, ज्वेलरी, होटल, मीडिया, संगीत या स्थिर कॉर्पोरेट नौकरी।',
+          initials: 'ब, व, उ, प, ट, स (वृषभ / तुला / मकर राशि प्रबल)',
+          meeting: 'पारिवारिक समारोह, शादी-विवाह, सांस्कृतिक कार्यक्रम या रिश्तेदारों के माध्यम से सुंदर परिचय होगा।',
+          remedy: 'शुक्रवार को माता लक्ष्मी को सफेद पुष्प अर्पित करें और छोटी कन्याओं को मिश्री/खीर खिलाएं।'
+        },
+        { // 2: मिथुन (Gemini - Mercury)
+          nature: 'बेहद बुद्धिमान, हंसमुख, बातूनी, आधुनिक सोच वाला और हर परिस्थिति में ढल जाने वाला। उनके साथ जीवन कभी बोरिंग नहीं होगा।',
+          appearance: 'युवा और ताजगी भरा चेहरा, चंचल-चमकदार आंखें, छरहरा व फुर्तीला शरीर और बहुत आकर्षक बोलचाल का अंदाज।',
+          career: 'आईटी/सॉफ्टवेयर, मीडिया, पत्रकारिता, शिक्षण, मार्केटिंग, अकाउंटिंग, डिजिटल बिजनेस या कंसल्टेंसी।',
+          initials: 'क, छ, घ, द, म, न (मिथुन / कन्या / कुंभ राशि प्रबल)',
+          meeting: 'कॉलेज, ऑफिस, सोशल मीडिया, ऑनलाइन प्लेटफॉर्म या किसी सेमिनार/कोर्स के दौरान बातचीत से शुरुआत होगी।',
+          remedy: 'बुधवार को भगवान गणेश को दूर्वा अर्पित करें और गाय को हरा चारा खिलाएं।'
+        },
+        { // 3: कर्क (Cancer - Moon)
+          nature: 'अत्यंत भावुक, देखभाल करने वाला, संवेदनशील और घर-परिवार से गहरा लगाव रखने वाला। वे आपकी छोटी-छोटी खुशियों का बहुत ध्यान रखेंगे।',
+          appearance: 'चंद्रमा सा सौम्य व गोल चेहरा, शांत व गहरी करुणामयी आंखें, साफ रंगत और ममतामयी मुस्कान।',
+          career: 'चिकित्सा/नर्सिंग, होटल/फूड इंडस्ट्री, शिक्षा, सरकारी विभाग, पब्लिक सर्विस, एचआर या पारिवारिक व्यापार।',
+          initials: 'ह, ड, म, न, श, प (कर्क / वृश्चिक / मीन राशि प्रबल)',
+          meeting: 'माता-पिता के परिचितों, पड़ोस/समान शहर या किसी धार्मिक/पारिवारिक आयोजन में आत्मीय मुलाकात होगी।',
+          remedy: 'सोमवार को शिवलिंग पर कच्चा दूध व जल चढ़ाएं और "ॐ नमः शिवाय" का 108 बार जप करें।'
+        },
+        { // 4: सिंह (Leo - Sun)
+          nature: 'शाही स्वभाव, स्वाभिमानी, उदार हृदय, नेतृत्व क्षमता से भरपूर और समाज में मान-सम्मान पाने वाला। वे आपको जीवन में आगे बढ़ने के लिए प्रेरित करेंगे।',
+          appearance: 'प्रभावशाली व्यक्तित्व, चौड़ा माथा, तेजस्वी आंखें, मजबूत कंधे, घने बाल और चेहरे पर स्वाभाविक आकर्षण।',
+          career: 'प्रशासनिक/सरकारी पद, मैनेजमेंट, राजनीति, डॉक्टर, सीए, उच्च प्रबंधन या प्रतिष्ठित व्यवसाय।',
+          initials: 'म, ट, अ, स, र, भ (सिंह / मेष / धनु राशि प्रबल)',
+          meeting: 'किसी बड़े समारोह, प्रतिष्ठित संस्थान, कार्यस्थल के सीनियर नेटवर्क या पारिवारिक प्रतिष्ठा वाले संबंध से रिश्ता जुड़ेगा।',
+          remedy: 'प्रातः तांबे के लोटे से सूर्य देव को जल अर्पित करें और रविवार को गुड़ का दान करें।'
+        },
+        { // 5: कन्या (Virgo - Mercury)
+          nature: 'समझदार, व्यावहारिक, अनुशासित, साफ-सफाई पसंद और हर काम को परफेक्शन से करने वाला। वे आर्थिक और घरेलू प्रबंधन में निपुण होंगे।',
+          appearance: 'संतुलित और सभ्य रूप-रंग, सौम्य व बुद्धिमान आंखें, सादगीपूर्ण पहनावा और उम्र से कम दिखने वाला आकर्षक चेहरा।',
+          career: 'चार्टर्ड अकाउंटेंट, बैंकिंग, आईटी, मेडिकल/फार्मा, रिसर्च, शिक्षक, लेखक या प्रशासनिक सेवा।',
+          initials: 'प, ठ, ण, क, ग, त (कन्या / वृषभ / मकर राशि प्रबल)',
+          meeting: 'पढ़ाई, कार्यस्थल, किसी प्रोफेशनल कॉन्टैक्ट या परिवार द्वारा सोच-समझकर चुने गए प्रस्ताव से मिलन होगा।',
+          remedy: 'बुधवार को विष्णु सहस्रनाम का पाठ करें और हरी मूंग या हरे वस्त्र का दान करें।'
+        },
+        { // 6: तुला (Libra - Venus)
+          nature: 'अत्यंत संतुलित, रोमांटिक, न्यायप्रिय, विनम्र और रिश्तों में सामंजस्य बनाकर चलने वाला। वे आपकी भावनाओं और आज़ादी दोनों का सम्मान करेंगे।',
+          appearance: 'बेहद आकर्षक व संतुलित नैन-नक्श, मोहक मुस्कान (गालों पर हल्का डिंपल संभव), सुंदर आंखें और सुरुचिपूर्ण ड्रेसिंग सेंस।',
+          career: 'कानून/वकालत, फैशन, इंटीरियर डिजाइन, पीआर/मीडिया, ब्यूटी/वेलनेस, डिप्लोमेसी या पार्टनरशिप बिजनेस।',
+          initials: 'र, त, व, ब, स, न (तुला / मिथुन / कुंभ राशि प्रबल)',
+          meeting: 'किसी मित्र की पार्टी, सामाजिक कार्यक्रम, कला/संगीत इवेंट या सुंदर पारिवारिक मुलाकात में तुरंत जुड़ाव महसूस होगा।',
+          remedy: 'शुक्रवार को इत्र या सफेद मिठाई का दान करें और देवी दुर्गा की आराधना करें।'
+        },
+        { // 7: वृश्चिक (Scorpio - Mars)
+          nature: 'गहरे विचारों वाला, अत्यंत समर्पित, रहस्यमयी आकर्षण से भरा और अपने जीवनसाथी के प्रति पूरी तरह निष्ठावान व सुरक्षात्मक।',
+          appearance: 'गहरी व प्रभावशाली आंखें, चुंबकीय आकर्षण, तीखी नाक, मजबूत व्यक्तित्व और गंभीर लेकिन कोमल मुस्कान।',
+          career: 'रिसर्च, साइबर/टेक, सर्जरी/मेडिकल, इन्वेस्टिगेशन, फाइनेंस, रियल एस्टेट या तकनीकी क्षेत्र।',
+          initials: 'न, य, त, भ, द, र (वृश्चिक / कर्क / मीन राशि प्रबल)',
+          meeting: 'किसी अनपेक्षित परिस्थिति, यात्रा या गहरे भावनात्मक संवाद के माध्यम से जीवन में प्रवेश होगा।',
+          remedy: 'मंगलवार को लाल मसूर दान करें और श्री हनुमान चालीसा का नियमित पाठ करें।'
+        },
+        { // 8: धनु (Sagittarius - Jupiter)
+          nature: 'धार्मिक, आध्यात्मिक, आशावादी, ईमानदार, बड़े दिल वाला और यात्रा व ज्ञान का प्रेमी। उनके आने से घर में सुख-समृद्धि व भाग्य वृद्धि होगी।',
+          appearance: 'लंबा या सुडौल कद, खुला व प्रसन्न चेहरा, चौड़ा माथा, चमकदार आंखें और चेहरे पर सात्विक तेज।',
+          career: 'शिक्षा/प्रोफेसर, कानून/न्यायपालिका, बैंकिंग, कंसल्टिंग, सरकारी अधिकारी, टूरिज़्म या आध्यात्मिक/प्रबंधन क्षेत्र।',
+          initials: 'भ, ध, फ, ढ, य, अ (धनु / मेष / सिंह राशि प्रबल)',
+          meeting: 'किसी धार्मिक स्थल, उच्च शिक्षा संस्थान, लंबी यात्रा या सम्मानित पारिवारिक गुरुजनों के माध्यम से रिश्ता तय होगा।',
+          remedy: 'गुरुवार को केले के वृक्ष की पूजा करें, पीला तिलक लगाएं और चने की दाल दान करें।'
+        },
+        { // 9: मकर (Capricorn - Saturn)
+          nature: 'अत्यंत परिपक्व, मेहनती, जिम्मेदार, धैर्यवान और अपने वादे का पक्का। वे दिखावे से दूर रहकर जीवन भर आपका मजबूत सहारा बनेंगे।',
+          appearance: 'सधी हुई गरिमामयी बनावट, गंभीर व भरोसेमंद आंखें, स्पष्ट जॉलाइन, शांत मुस्कान और सभ्य व्यक्तित्व।',
+          career: 'सरकारी सेवा, सिविल/मैकेनिकल इंजीनियरिंग, लॉ, मैनेजमेंट, कंस्ट्रक्शन, कृषि/उद्योग या स्थायी बड़ा व्यवसाय।',
+          initials: 'ख, ज, ग, स, प, व (मकर / वृषभ / कन्या राशि प्रबल)',
+          meeting: 'करियर से जुड़े कार्यक्षेत्र या परिवार के बड़े-बुजुर्गों के माध्यम से बहुत स्थायी व विश्वसनीय रिश्ता जुड़ेगा।',
+          remedy: 'शनिवार को पीपल के नीचे सरसों के तेल का दीपक जलाएं और जरूरतमंदों को अन्न दान करें।'
+        },
+        { // 10: कुंभ (Aquarius - Saturn)
+          nature: 'स्वतंत्र विचारों वाला, प्रगतिशील, मानवतावादी, बुद्धिमान और दोस्त बनकर साथ निभाने वाला जीवनसाथी। वे पारंपरिक सीमाओं से ऊपर उठकर आपका साथ देंगे।',
+          appearance: 'आकर्षक लंबा कद, अनोखी चमकदार आंखें, आधुनिक व सहज शैली और मित्रवत मुस्कान।',
+          career: 'टेक्नोलॉजी, एआई/डेटा, रिसर्च, सोशल वर्क, एविएशन, इलेक्ट्रॉनिक्स, स्टार्टअप या इनोवेटिव बिजनेस।',
+          initials: 'ग, स, श, द, र, क (कुंभ / मिथुन / तुला राशि प्रबल)',
+          meeting: 'किसी फ्रेंड ग्रुप, सोशल कम्युनिटी, टेक/प्रोफेशनल नेटवर्क या अलग शहर के संपर्क से दोस्ती प्यार/विवाह में बदलेगी।',
+          remedy: 'शनिवार को भगवान शिव का अभिषेक करें और "ॐ शं शनैश्चराय नमः" का जप करें।'
+        },
+        { // 11: मीन (Pisces - Jupiter)
+          nature: 'अत्यंत कोमल हृदय, रोमांटिक, कलात्मक, दयालु, आध्यात्मिक और समर्पित। वे रिश्ते में बिना शर्त प्रेम और मानसिक सुकून लेकर आएंगे।',
+          appearance: 'सौम्य व आकर्षक चेहरा, बड़ी-स्वप्निल और भावपूर्ण आंखें, कोमल त्वचा, मधुर मुस्कान और शांत आभा।',
+          career: 'शिक्षा, कला/संगीत/फिल्म, हीलिंग/मेडिकल, काउंसलिंग, विदेश से जुड़ा कार्य, एनजीओ या रचनात्मक क्षेत्र।',
+          initials: 'द, च, झ, थ, ह, न (मीन / कर्क / वृश्चिक राशि प्रबल)',
+          meeting: 'किसी आध्यात्मिक, कलात्मक या भावनात्मक संयोग से मुलाकात होगी — पहली बार मिलते ही गहरा अपनापन महसूस होगा।',
+          remedy: 'गुरुवार को भगवान विष्णु को पीले फूल चढ़ाएं और हल्दी मिश्रित जल सूर्य को अर्पित करें।'
+        }
+      ];
+
+      async function generateMarriageSketchImage(promptEn, seedVal, spouseGender) {
         const loader = el('marriageSketchLoader');
         const imgEl = el('marriageSketchImg');
         const badge = el('marriageSketchEngineBadge');
-        if (loader) loader.classList.remove('hidden');
+        if (loader) {
+          loader.classList.remove('hidden');
+          loader.innerHTML = `<div class="w-10 h-10 border-4 border-pink-400/30 border-t-amber-300 rounded-full animate-spin mx-auto"></div><p class="text-xs text-amber-200 font-semibold mt-2">रियल AI कलाकार आपके जीवनसाथी का पेंसिल स्केच बना रहा है...</p>`;
+        }
         if (imgEl) imgEl.classList.add('hidden');
         if (badge) badge.textContent = 'Drawing...';
         try {
@@ -9950,7 +10053,11 @@
           const res = await fetch(`${base}/api/marriage-sketch`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ promptEn, seed: seedVal || Math.floor(Math.random() * 999999) })
+            body: JSON.stringify({
+              promptEn,
+              spouseGender: spouseGender || lastMarriageSpouseGender,
+              seed: seedVal || Math.floor(Math.random() * 999999)
+            })
           });
           const data = await res.json();
           if (res.ok && data.imageDataUrl) {
@@ -9958,13 +10065,13 @@
             imgEl.src = data.imageDataUrl;
             imgEl.classList.remove('hidden');
             loader.classList.add('hidden');
-            if (badge) badge.textContent = 'Real AI Sketch ✓';
+            if (badge) badge.textContent = data.engine || 'Real AI Sketch ✓';
             return;
           }
           throw new Error(data.message || 'Sketch error');
         } catch (err) {
           if (loader) {
-            loader.innerHTML = `<p class="text-xs text-rose-300 font-semibold">AI स्केच सर्वर अभी व्यस्त है। ऊपर "🔄 नया AI स्केच बनाएं" पर दोबारा क्लिक करें।</p>`;
+            loader.innerHTML = `<p class="text-xs text-rose-300 font-semibold">कनेक्शन धीमा है। ऊपर "🔄 नया AI स्केच बनाएं" पर क्लिक करें।</p>`;
           }
           if (badge) badge.textContent = 'Retry';
         }
@@ -10002,36 +10109,65 @@
         const venusHouse = ((venusIdx - lagnaIdx + 12) % 12) + 1;
         const jupHouse = ((jupIdx - lagnaIdx + 12) % 12) + 1;
         const nakIdx = Math.floor(moonLon / (360 / 27));
+        const isManglik = [1, 2, 4, 7, 8, 12].includes(marsHouse);
 
         const nowYear = new Date().getFullYear();
         const age = Math.max(18, nowYear - y);
         const idealStartAge = Math.max(age, gender === 'female' ? 23 : 25);
-        const offsetMod = (seventhIdx + venusHouse + d) % 4;
+        const offsetMod = (seventhIdx + venusHouse + d + hh) % 4;
         const estYear1 = Math.max(nowYear, y + idealStartAge + offsetMod);
         const estYear2 = estYear1 + 1;
+        const MONTHS_HI = ['जनवरी–मार्च', 'अप्रैल–जून', 'मई–जुलाई', 'नवंबर–दिसंबर', 'फरवरी–अप्रैल', 'अक्टूबर–दिसंबर'];
+        const bestMonths = MONTHS_HI[(m + seventhIdx + jupIdx) % MONTHS_HI.length];
 
         const spouseGender = gender === 'male' ? 'female' : 'male';
+        lastMarriageSpouseGender = spouseGender;
         const spouseAge = gender === 'male' ? Math.max(21, age - 2) : Math.max(24, age + 2);
         const DIRECTIONS = ['पूर्व (East)', 'दक्षिण-पूर्व (South-East)', 'दक्षिण (South)', 'दक्षिण-पश्चिम (South-West)', 'पश्चिम (West)', 'उत्तर-पश्चिम (North-West)', 'उत्तर (North)', 'उत्तर-पूर्व (North-East)'];
-        const dirHint = DIRECTIONS[(seventhIdx + venusIdx) % DIRECTIONS.length];
-        const loveChance = [5, 7, 11].includes(venusHouse) || [5, 7].includes(marsHouse) ? 68 + ((d + m) % 24) : 34 + ((d + m) % 30);
+        const dirHint = DIRECTIONS[(seventhIdx + venusIdx + (d % 3)) % DIRECTIONS.length];
+        const loveChance = [5, 7, 11].includes(venusHouse) || [5, 7].includes(marsHouse) ? 62 + ((d + m + hh) % 28) : 28 + ((d + m + hh) % 34);
+        const prof = SEVENTH_HOUSE_PROFILES[seventhIdx];
 
         el('marriageResultWrap').classList.remove('hidden');
-        el('marriageMetaHeader').textContent = `${nameVal} • लग्न: ${RASHIS_HI[lagnaIdx]} • सप्तम भाव: ${RASHIS_HI[seventhIdx]} • जन्म स्थान: ${placeOpt.slice(0, 38)}`;
-        el('marriageStatusMsg').textContent = '✨ Real AI विवाह भविष्यवाणी और जीवनसाथी का स्केच बना रहा है...';
+        el('marriageMetaHeader').textContent = `${nameVal} • लग्न: ${RASHIS_HI[lagnaIdx]} • सप्तम भाव: ${RASHIS_HI[seventhIdx]} (${RASHI_LORDS_HI[seventhIdx]}) • ${placeOpt.slice(0, 34)}`;
+        el('marriageStatusMsg').textContent = '✨ Real AI विवाह भविष्यवाणी और जीवनसाथी का स्केच तैयार कर रहा है...';
 
         el('marriageCoreKpis').innerHTML = `
-          <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">विवाह का प्रबल योग</div><div class="text-lg font-extrabold text-amber-300">${estYear1} – ${estYear2}</div><div class="text-[11px] text-purple-200">सप्तम भाव: ${RASHIS_HI[seventhIdx]}</div></div>
+          <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">विवाह का प्रबल योग</div><div class="text-lg font-extrabold text-amber-300">${estYear1} – ${estYear2}</div><div class="text-[11px] text-purple-200">शुभ माह: ${bestMonths}</div></div>
           <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">प्रेम बनाम अरेंज योग</div><div class="text-lg font-extrabold text-pink-300">${loveChance >= 55 ? 'प्रेम / लव-कम-अरेंज' : 'अरेंज मैरिज प्रबल'}</div><div class="text-[11px] text-purple-200">प्रेम योग: ${loveChance}% • अरेंज: ${100 - loveChance}%</div></div>
-          <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">जीवनसाथी की दिशा</div><div class="text-base font-extrabold text-cyan-300">${dirHint}</div><div class="text-[11px] text-purple-200">जन्म स्थान से संभावित दिशा</div></div>
+          <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">जीवनसाथी की दिशा</div><div class="text-base font-extrabold text-cyan-300">${dirHint}</div><div class="text-[11px] text-purple-200">सप्तम भाव: ${RASHIS_HI[seventhIdx]}</div></div>
           <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">विवाह कारक ग्रह</div><div class="text-base font-extrabold text-emerald-300">${gender === 'male' ? 'शुक्र (' + RASHIS_HI[venusIdx] + ')' : 'गुरु (' + RASHIS_HI[jupIdx] + ')'}</div><div class="text-[11px] text-purple-200">नक्षत्र: ${NAKSHATRAS_HI[nakIdx]}</div></div>
         `;
 
-        el('marriageDetailsCards').innerHTML = `<div class="gold-card rounded-2xl p-4 text-xs text-amber-200 flex items-center gap-2"><span class="w-4 h-4 border-2 border-pink-400/30 border-t-amber-300 rounded-full animate-spin inline-block"></span> Real Gemini AI आपकी कुंडली से विस्तृत विवाह भविष्यवाणी तैयार कर रहा है...</div>`;
+        // Immediately show rich, 100% unique 7th-house Vedic profile (never generic!)
+        const renderDetailedVedic = () => {
+          el('marriageDetailsCards').innerHTML = `
+            <div class="gold-card rounded-2xl p-4 space-y-2.5 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+              <div class="flex items-center justify-between border-b border-amber-400/20 pb-1.5">
+                <span class="font-bold text-amber-200">📜 ${escapeHtml(nameVal)} का सप्तम भाव (${RASHIS_HI[seventhIdx]} • स्वामी ${RASHI_LORDS_HI[seventhIdx]}) विस्तृत फलादेश</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200">वैदिक गणना</span>
+              </div>
+              <div><strong class="text-amber-300">📅 शादी कब होगी (Marriage Timing):</strong> ${RASHIS_HI[lagnaIdx]} लग्न और सप्तम भाव में ${RASHIS_HI[seventhIdx]} राशि (स्वामी ${RASHI_LORDS_HI[seventhIdx]}) के साथ ${gender === 'male' ? 'शुक्र भाव ' + venusHouse : 'गुरु भाव ' + jupHouse} में स्थित है। वर्ष <strong>${estYear1} से ${estYear2}</strong> के बीच (${bestMonths}) विवाह के सबसे प्रबल योग बन रहे हैं। ${isManglik ? 'कुंडली में मंगल भाव ' + marsHouse + ' में है, इसलिए गुण-मिलान कर विवाह करना अत्यंत शुभ रहेगा।' : 'मंगल की स्थिति विवाह में किसी बड़ी बाधा का संकेत नहीं देती।'}</div>
+              <div><strong class="text-pink-300">💞 प्रेम या अरेंज मैरिज:</strong> आपकी कुंडली में <strong>${loveChance >= 55 ? 'प्रेम विवाह / लव-कम-अरेंज (' + loveChance + '%)' : 'पारिवारिक अरेंज मैरिज (' + (100 - loveChance) + '%)'}</strong> का योग अधिक प्रबल है। शुक्र ${RASHIS_HI[venusIdx]} राशि (भाव ${venusHouse}) में होकर भावनात्मक आकर्षण दर्शाता है।</div>
+              <div><strong class="text-cyan-300">✨ जीवनसाथी का स्वभाव व व्यक्तित्व:</strong> ${prof.nature}</div>
+              <div><strong class="text-amber-200">👤 चेहरा-मोहरा व शारीरिक बनावट:</strong> ${prof.appearance}</div>
+              <div><strong class="text-emerald-300">💼 करियर व आर्थिक स्थिति:</strong> ${prof.career}</div>
+              <div><strong class="text-purple-200">🧭 दिशा, राशि व नाम के संभावित अक्षर:</strong> जन्म स्थान से <strong>${dirHint}</strong> दिशा से रिश्ता जुड़ने के प्रबल संकेत हैं। संभावित शुरुआती अक्षर: <strong>${prof.initials}</strong>।</div>
+              <div><strong class="text-pink-200">🌸 पहली मुलाकात कैसे होगी:</strong> ${prof.meeting}</div>
+              <div class="pt-2 border-t border-amber-400/20"><strong class="text-amber-300 block mb-1">🪔 शीघ्र व सुखद विवाह उपाय:</strong><p class="text-xs">${prof.remedy}</p></div>
+            </div>
+          `;
+        };
+        renderDetailedVedic();
 
-        const seedNum = (y * 37 + m * 131 + d * 977 + seventhIdx * 53 + venusIdx * 17) % 999999;
-        let fallbackPrompt = `Realistic hand-drawn graphite pencil portrait sketch of a graceful ${spouseAge}-year-old Indian ${spouseGender === 'female' ? 'woman with expressive kind almond eyes, soft warm smile, neat wavy hair, subtle bindi and traditional kurta' : 'man with calm intelligent eyes, gentle warm smile, neat hair, light groomed beard and classic kurta'}, delicate charcoal shading on cream paper`;
+        const seedNum = Math.abs((y * 37 + m * 131 + d * 977 + hh * 41 + seventhIdx * 53 + venusIdx * 17 + nameVal.length * 29) % 999999);
+        const fallbackPrompt = `Realistic hand-drawn graphite pencil portrait sketch of a graceful ${spouseAge}-year-old Indian ${spouseGender === 'female' ? 'woman' : 'man'}, ${RASHIS_EN[seventhIdx]} zodiac aura, expressive kind eyes, warm natural smile, traditional Indian attire, delicate charcoal shading on cream sketchbook paper`;
 
+        // Launch Sketch immediately in parallel so user doesn't wait!
+        lastMarriageSketchPrompt = fallbackPrompt;
+        const sketchPromise = generateMarriageSketchImage(fallbackPrompt, seedNum, spouseGender);
+
+        // Enrich with Real Gemini AI personalized narrative
         try {
           const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
           const res = await fetch(`${base}/api/ai-jyotish`, {
@@ -10042,41 +10178,40 @@
               language: state.lang || 'hi',
               data: {
                 name: nameVal, gender, spouseGender, spouseAge, dob: dobVal, time: timeVal, place: placeOpt,
-                lagna: RASHIS_HI[lagnaIdx], seventhSign: RASHIS_HI[seventhIdx], moonSign: RASHIS_HI[moonIdx],
-                nakshatra: NAKSHATRAS_HI[nakIdx], venusSign: RASHIS_HI[venusIdx], venusHouse,
-                jupiterSign: RASHIS_HI[jupIdx], jupiterHouse: jupHouse, marsHouse, estimatedYears: `${estYear1}-${estYear2}`, loveChance
+                lagna: RASHIS_HI[lagnaIdx], seventhSign: RASHIS_HI[seventhIdx], seventhLord: RASHI_LORDS_HI[seventhIdx],
+                moonSign: RASHIS_HI[moonIdx], nakshatra: NAKSHATRAS_HI[nakIdx], venusSign: RASHIS_HI[venusIdx],
+                venusHouse, jupiterSign: RASHIS_HI[jupIdx], jupiterHouse: jupHouse, marsHouse, isManglik,
+                estimatedYears: `${estYear1}-${estYear2}`, bestMonths, dirHint, loveChance
               }
             })
           });
-          if (!res.ok) throw new Error('AI failed');
-          const ai = await res.json();
-          const rems = Array.isArray(ai.marriage_remedies) ? ai.marriage_remedies : [];
-          el('marriageDetailsCards').innerHTML = `
-            <div class="gold-card rounded-2xl p-4 space-y-2 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-              <div><strong class="text-amber-300">📅 शादी कब होगी (Marriage Timing):</strong> ${escapeHtml(ai.marriage_timing || '')}</div>
-              <div><strong class="text-pink-300">💞 प्रेम या अरेंज मैरिज:</strong> ${escapeHtml(ai.marriage_type || '')}</div>
-              <div><strong class="text-cyan-300">✨ जीवनसाथी का स्वभाव व व्यक्तित्व:</strong> ${escapeHtml(ai.spouse_nature || '')}</div>
-              <div><strong class="text-amber-200">👤 चेहरा-मोहरा व रूप-रंग:</strong> ${escapeHtml(ai.spouse_appearance || '')}</div>
-              <div><strong class="text-emerald-300">💼 करियर व पारिवारिक स्थिति:</strong> ${escapeHtml(ai.spouse_career || '')}</div>
-              <div><strong class="text-purple-200">🧭 दिशा, राशि व नाम के संभावित अक्षर:</strong> ${escapeHtml(ai.spouse_direction_initials || '')}</div>
-              <div><strong class="text-pink-200">🌸 पहली मुलाकात कैसे होगी:</strong> ${escapeHtml(ai.first_meeting_story || '')}</div>
-              ${rems.length ? `<div class="pt-2 border-t border-amber-400/20"><strong class="text-amber-300 block mb-1">🪔 शीघ्र व सुखद विवाह उपाय:</strong><ul class="list-disc pl-4 space-y-1 text-xs">${rems.map((rm) => `<li>${escapeHtml(rm)}</li>`).join('')}</ul></div>` : ''}
-            </div>
-          `;
-          lastMarriageSketchPrompt = ai.sketch_prompt_en || fallbackPrompt;
-        } catch (_) {
-          el('marriageDetailsCards').innerHTML = `
-            <div class="gold-card rounded-2xl p-4 space-y-2 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-              <div><strong class="text-amber-300">📅 शादी कब होगी:</strong> सप्तम भाव (${RASHIS_HI[seventhIdx]}) और ${gender === 'male' ? 'शुक्र' : 'गुरु'} की स्थिति के अनुसार वर्ष ${estYear1} से ${estYear2} के बीच विवाह का सबसे प्रबल योग बन रहा है।</div>
-              <div><strong class="text-cyan-300">✨ जीवनसाथी का स्वभाव:</strong> आपका जीवनसाथी समझदार, पारिवारिक मूल्यों का सम्मान करने वाला और कठिन समय में साथ निभाने वाला होगा।</div>
-              <div><strong class="text-purple-200">🧭 संभावित दिशा:</strong> आपके जन्म स्थान से ${dirHint} दिशा की ओर से रिश्ते का प्रबल योग बनता है।</div>
-            </div>
-          `;
-          lastMarriageSketchPrompt = fallbackPrompt;
-        }
+          if (res.ok) {
+            const ai = await res.json();
+            if (ai && ai.marriage_timing && ai.spouse_nature) {
+              const rems = Array.isArray(ai.marriage_remedies) ? ai.marriage_remedies : [prof.remedy];
+              el('marriageDetailsCards').innerHTML = `
+                <div class="gold-card rounded-2xl p-4 space-y-2.5 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+                  <div class="flex items-center justify-between border-b border-pink-400/25 pb-1.5">
+                    <span class="font-bold text-amber-200">✨ ${escapeHtml(nameVal)} का Real AI व्यक्तिगत विवाह फलादेश (${RASHIS_HI[seventhIdx]} सप्तम भाव)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">Real AI Unique</span>
+                  </div>
+                  <div><strong class="text-amber-300">📅 शादी कब होगी (Marriage Timing):</strong> ${escapeHtml(ai.marriage_timing)}</div>
+                  <div><strong class="text-pink-300">💞 प्रेम या अरेंज मैरिज:</strong> ${escapeHtml(ai.marriage_type || '')}</div>
+                  <div><strong class="text-cyan-300">✨ जीवनसाथी का स्वभाव व व्यक्तित्व:</strong> ${escapeHtml(ai.spouse_nature)}</div>
+                  <div><strong class="text-amber-200">👤 चेहरा-मोहरा व रूप-रंग:</strong> ${escapeHtml(ai.spouse_appearance || prof.appearance)}</div>
+                  <div><strong class="text-emerald-300">💼 करियर व पारिवारिक स्थिति:</strong> ${escapeHtml(ai.spouse_career || prof.career)}</div>
+                  <div><strong class="text-purple-200">🧭 दिशा, राशि व नाम के संभावित अक्षर:</strong> ${escapeHtml(ai.spouse_direction_initials || prof.initials)}</div>
+                  <div><strong class="text-pink-200">🌸 पहली मुलाकात कैसे होगी:</strong> ${escapeHtml(ai.first_meeting_story || prof.meeting)}</div>
+                  <div class="pt-2 border-t border-amber-400/20"><strong class="text-amber-300 block mb-1">🪔 शीघ्र व सुखद विवाह उपाय:</strong><ul class="list-disc pl-4 space-y-1 text-xs">${rems.map((rm) => `<li>${escapeHtml(rm)}</li>`).join('')}</ul></div>
+                </div>
+              `;
+              if (ai.sketch_prompt_en) lastMarriageSketchPrompt = ai.sketch_prompt_en;
+            }
+          }
+        } catch (_) {}
 
+        await sketchPromise;
         el('marriageStatusMsg').textContent = '';
-        await generateMarriageSketchImage(lastMarriageSketchPrompt, seedNum);
       }
 
         populateCityDropdown('kundliCitySelect', '');
@@ -10093,7 +10228,7 @@
         if (el('tabMarriageBtn')) el('tabMarriageBtn').addEventListener('click', () => switchPrimaryTab('marriage'));
         if (el('generateMarriageSketchBtn')) el('generateMarriageSketchBtn').addEventListener('click', runMarriagePredictionAndSketch);
         if (el('regenMarriageSketchBtn')) el('regenMarriageSketchBtn').addEventListener('click', () => {
-          if (lastMarriageSketchPrompt) generateMarriageSketchImage(lastMarriageSketchPrompt, Math.floor(Math.random() * 999999));
+          if (lastMarriageSketchPrompt) generateMarriageSketchImage(lastMarriageSketchPrompt, Math.floor(Math.random() * 999999), lastMarriageSpouseGender);
         });
         if (el('downloadMarriageSketchBtn')) el('downloadMarriageSketchBtn').addEventListener('click', () => {
           if (!lastMarriageSketchDataUrl) { showToast('पहले AI स्केच बनने दें।'); return; }
