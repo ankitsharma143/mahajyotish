@@ -10273,114 +10273,144 @@
           const usableW = pageW - margin * 2;
           const usableH = pageH - margin * 2;
 
-          let usedCanvasPages = null;
+          let totalPagesCount = 0;
 
-          // Try html2canvas first with oklch-safe cloned styles
-          if (typeof window.html2canvas !== 'undefined') {
-            try {
-              await new Promise((r) => setTimeout(r, 80));
-              const fullCanvas = await window.html2canvas(targetEl, {
-                scale: 1.35,
-                backgroundColor: '#0e081c',
-                useCORS: true,
-                logging: false,
-                ignoreElements: (node) => node.classList && node.classList.contains('no-print'),
-                onclone: (doc) => {
-                  doc.querySelectorAll('*').forEach((elNode) => {
-                    const cs = doc.defaultView.getComputedStyle(elNode);
-                    if (cs && cs.backgroundImage && cs.backgroundImage.includes('oklch')) {
-                      elNode.style.backgroundImage = 'none';
-                    }
-                    if (cs && cs.color && cs.color.includes('oklch')) {
-                      elNode.style.color = '#f5f1ff';
-                    }
-                    if (cs && cs.backgroundColor && cs.backgroundColor.includes('oklch')) {
-                      elNode.style.backgroundColor = '#150e28';
-                    }
-                  });
-                  doc.querySelectorAll('.accordion-toggle, .accordion-toggle span, h1, h2, h3, h4').forEach((node) => {
-                    node.style.overflow = 'visible';
-                    node.style.whiteSpace = 'normal';
-                    node.style.lineHeight = '1.55';
-                  });
-                }
-              });
-
-              if (fullCanvas && fullCanvas.width > 0 && fullCanvas.height > 0) {
-                const imgW = fullCanvas.width;
-                const imgH = fullCanvas.height;
-                const pxPerMm = imgW / usableW;
-                const sliceHeightPx = Math.floor(usableH * pxPerMm);
-                const targetRect = targetEl.getBoundingClientRect();
-                const scaleFactor = targetRect.height > 0 ? (imgH / targetRect.height) : 1.35;
-                const atomicBlocks = [];
-                targetEl.querySelectorAll('.accordion-item, .gold-card, #detectedLinesChips > div, .grid > div, canvas, li, p').forEach((node) => {
-                  const nr = node.getBoundingClientRect();
-                  const topPx = Math.floor((nr.top - targetRect.top) * scaleFactor);
-                  const botPx = Math.ceil((nr.bottom - targetRect.top) * scaleFactor);
-                  const boxH = botPx - topPx;
-                  if (boxH > 14 && boxH <= sliceHeightPx * 0.88 && topPx >= 0 && botPx <= imgH) {
-                    atomicBlocks.push({ top: topPx, bottom: botPx });
-                  }
-                });
-                usedCanvasPages = [];
-                let offsetY = 0;
-                while (offsetY < imgH) {
-                  let cutY = Math.min(offsetY + sliceHeightPx, imgH);
-                  if (cutY < imgH) {
-                    for (let pass = 0; pass < 3; pass++) {
-                      let bestTop = cutY;
-                      for (let i = 0; i < atomicBlocks.length; i++) {
-                        const b = atomicBlocks[i];
-                        if (b.top < cutY && b.bottom > cutY && b.top > offsetY + 60) {
-                          if (b.top < bestTop) bestTop = b.top;
-                        }
-                      }
-                      if (bestTop < cutY) {
-                        cutY = Math.max(offsetY + 60, bestTop - 6);
-                      } else {
-                        break;
-                      }
-                    }
-                  }
-                  const hPx = Math.max(1, cutY - offsetY);
-                  const sc = document.createElement('canvas');
-                  sc.width = imgW;
-                  sc.height = hPx;
-                  const sCtx = sc.getContext('2d');
-                  sCtx.fillStyle = '#0e081c';
-                  sCtx.fillRect(0, 0, imgW, hPx);
-                  sCtx.drawImage(fullCanvas, 0, offsetY, imgW, hPx, 0, 0, imgW, hPx);
-                  usedCanvasPages.push(sc);
-                  offsetY = cutY;
-                }
-              }
-            } catch (h2cErr) {
-              usedCanvasPages = null;
-            }
-          }
-
-          // Guaranteed native Canvas Devanagari Fallback if html2canvas failed
-          if (!usedCanvasPages || !usedCanvasPages.length) {
-            usedCanvasPages = renderDomTextToCanvases(targetEl, filePrefix);
-          }
-
-          usedCanvasPages.forEach((pgCanvas, idx) => {
-            if (idx > 0) pdf.addPage();
-            if (idx === 0) {
-              pdf.setFillColor(21, 14, 40);
+          const initDarkPage = (isFirst) => {
+            if (!isFirst) pdf.addPage();
+            totalPagesCount++;
+            pdf.setFillColor(14, 8, 28);
+            pdf.rect(0, 0, pageW, pageH, 'F');
+            if (isFirst) {
+              pdf.setFillColor(24, 15, 48);
               pdf.rect(0, 0, pageW, 13, 'F');
+              pdf.setDrawColor(232, 190, 90);
+              pdf.setLineWidth(0.35);
+              pdf.line(margin, 13, pageW - margin, 13);
               pdf.setTextColor(247, 215, 126);
               pdf.setFontSize(9.5);
               pdf.text('MAHAJYOTISH  |  By Mahaindustries (Pro. Ankit Sharma • 7500343487)', pageW / 2, 8.2, { align: 'center' });
             }
-            const hMm = Math.min(usableH, (pgCanvas.height / pgCanvas.width) * usableW);
-            pdf.addImage(pgCanvas.toDataURL('image/jpeg', 0.90), 'JPEG', margin, margin, usableW, hMm);
-          });
+            pdf.setTextColor(180, 165, 210);
+            pdf.setFontSize(8);
+            pdf.text(`MAHAJYOTISH • Page ${totalPagesCount}`, pageW / 2, pageH - 4, { align: 'center' });
+            return isFirst ? 16 : 9;
+          };
+
+          const collectPdfBlocks = (rootEl) => {
+            const blocks = [];
+            const walk = (node, depth) => {
+              if (!node || node.nodeType !== 1) return;
+              if (node.classList.contains('no-print') || node.classList.contains('hidden')) return;
+              const rect = node.getBoundingClientRect();
+              if (rect.height < 10 || rect.width < 20) return;
+
+              const isCard = node.classList.contains('gold-card') || node.classList.contains('gold-card-subtle') || node.classList.contains('accordion-item');
+              const maxAtomicPx = Math.max(520, rect.width * 1.25);
+
+              // If it's a compact card or leaf element, keep it whole (NEVER cut!)
+              if (isCard && rect.height <= maxAtomicPx) {
+                blocks.push(node);
+                return;
+              }
+              const visKids = Array.from(node.children).filter((c) => {
+                if (!c || c.nodeType !== 1) return false;
+                if (c.classList.contains('no-print') || c.classList.contains('hidden')) return false;
+                const cr = c.getBoundingClientRect();
+                return cr.height >= 10 && cr.width >= 20;
+              });
+              if (!visKids.length || depth >= 4) {
+                blocks.push(node);
+                return;
+              }
+              // Keep small grids/rows together if they fit cleanly
+              if (rect.height <= maxAtomicPx * 0.72 && depth >= 1) {
+                blocks.push(node);
+                return;
+              }
+              visKids.forEach((child) => walk(child, depth + 1));
+            };
+            walk(rootEl, 0);
+            return blocks;
+          };
+
+          let cardRenderedOk = false;
+
+          if (typeof window.html2canvas !== 'undefined') {
+            try {
+              await new Promise((r) => setTimeout(r, 90));
+              const blocks = collectPdfBlocks(targetEl);
+              if (blocks.length > 0) {
+                let cursorY = initDarkPage(true);
+                const pageBottom = pageH - 10;
+                const maxSingleH = pageBottom - 10;
+
+                const sanitizeClone = (doc) => {
+                  doc.querySelectorAll('*').forEach((elNode) => {
+                    const cs = doc.defaultView.getComputedStyle(elNode);
+                    if (cs && cs.backgroundImage && cs.backgroundImage.includes('oklch')) elNode.style.backgroundImage = 'none';
+                    if (cs && cs.color && cs.color.includes('oklch')) elNode.style.color = '#f5f1ff';
+                    if (cs && cs.backgroundColor && cs.backgroundColor.includes('oklch')) elNode.style.backgroundColor = '#150e28';
+                  });
+                  doc.querySelectorAll('.accordion-toggle, .accordion-toggle span, h1, h2, h3, h4').forEach((n) => {
+                    n.style.overflow = 'visible';
+                    n.style.whiteSpace = 'normal';
+                    n.style.lineHeight = '1.55';
+                  });
+                };
+
+                for (let i = 0; i < blocks.length; i++) {
+                  const blk = blocks[i];
+                  const c = await window.html2canvas(blk, {
+                    scale: 1.45,
+                    backgroundColor: '#0e081c',
+                    useCORS: true,
+                    logging: false,
+                    ignoreElements: (node) => node.classList && node.classList.contains('no-print'),
+                    onclone: sanitizeClone
+                  });
+                  if (!c || c.width < 4 || c.height < 4) continue;
+
+                  let drawW = usableW;
+                  let drawH = (c.height / c.width) * drawW;
+
+                  if (drawH > maxSingleH) {
+                    // Start fresh page & scale proportionally so the entire tall card fits cleanly with ZERO cutting
+                    if (cursorY > 18) cursorY = initDarkPage(false);
+                    const availH = pageBottom - cursorY;
+                    const ratio = availH / drawH;
+                    drawH = availH;
+                    drawW = drawW * ratio;
+                  } else if (cursorY + drawH > pageBottom) {
+                    cursorY = initDarkPage(false);
+                  }
+
+                  const drawX = margin + (usableW - drawW) / 2;
+                  pdf.addImage(c.toDataURL('image/jpeg', 0.90), 'JPEG', drawX, cursorY, drawW, drawH);
+                  cursorY += drawH + 3.2;
+                }
+                cardRenderedOk = totalPagesCount > 0;
+              }
+            } catch (h2cErr) {
+              cardRenderedOk = false;
+            }
+          }
+
+          // Guaranteed native Canvas Devanagari Fallback if html2canvas failed
+          if (!cardRenderedOk) {
+            const fallbackPages = renderDomTextToCanvases(targetEl, filePrefix);
+            totalPagesCount = fallbackPages.length;
+            fallbackPages.forEach((pgCanvas, idx) => {
+              if (idx > 0) pdf.addPage();
+              pdf.setFillColor(14, 8, 28);
+              pdf.rect(0, 0, pageW, pageH, 'F');
+              const hMm = Math.min(usableH, (pgCanvas.height / pgCanvas.width) * usableW);
+              pdf.addImage(pgCanvas.toDataURL('image/jpeg', 0.90), 'JPEG', margin, margin, usableW, hMm);
+            });
+          }
 
           currentPdfBlob = pdf.output('blob');
           el('pdfReadyFileName').textContent = currentPdfFilename;
-          el('pdfReadyMetaInfo').textContent = `${usedCanvasPages.length} पेज • ${Math.max(1, Math.round(currentPdfBlob.size / 1024))} KB • डाउनलोड, शेयर या प्रिंट के लिए तैयार`;
+          el('pdfReadyMetaInfo').textContent = `${totalPagesCount} पेज • ${Math.max(1, Math.round(currentPdfBlob.size / 1024))} KB • डाउनलोड, शेयर या प्रिंट के लिए तैयार`;
           spinner.classList.add('hidden');
           actions.classList.remove('hidden');
         } catch (err) {
