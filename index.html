@@ -529,6 +529,9 @@
         <!-- Career, Money, Love & Lucky Remedies -->
         <div id="numLifeDetailsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
+        <!-- Complete Lo-Shu Grid, 9-Year Cycle & Traditional Karma/Spiritual Philosophy -->
+        <div id="numLoShuKarmaCard" class="space-y-4"></div>
+
         <!-- Ethical Disclaimer -->
         <div class="rounded-2xl p-4 bg-black/50 border border-amber-400/20 text-xs text-purple-200/75" id="numDisclaimerBox"></div>
       </div>
@@ -4959,6 +4962,157 @@
             </div>
           </div>
         `;
+
+        // =========================================================================
+        // COMPLETE ANKSHASTRA: LO-SHU GRID (3x3) + 9-YEAR CYCLE + TRADITIONAL KARMA PHILOSOPHY
+        // =========================================================================
+        const dobDigitsRaw = `${dayStr}${monthStr}${yearStr}`.replace(/[^1-9]/g, '').split('').map(Number);
+        const gridCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
+        dobDigitsRaw.forEach((n) => { if (gridCounts[n] !== undefined) gridCounts[n]++; });
+        if (day > 9 && gridCounts[mulank] !== undefined) gridCounts[mulank]++;
+        if (gridCounts[bhagyank] !== undefined) gridCounts[bhagyank]++;
+
+        const LOSHU_ORDER = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+        const LOSHU_LABELS = {
+          1: 'करियर/सूर्य', 2: 'संबंध/चंद्र', 3: 'ज्ञान/गुरु', 4: 'धन/राहु',
+          5: 'संतुलन/बुध', 6: 'मित्र/शुक्र', 7: 'संतान/केतु', 8: 'कर्म/शनि', 9: 'यश/मंगल'
+        };
+        const missingNums = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((n) => gridCounts[n] === 0);
+        const hasGoldenRajyog = gridCounts[4] > 0 && gridCounts[5] > 0 && gridCounts[6] > 0;
+        const hasSilverRajyog = gridCounts[2] > 0 && gridCounts[5] > 0 && gridCounts[8] > 0;
+        const hasThoughtPlane = gridCounts[4] > 0 && gridCounts[3] > 0 && gridCounts[8] > 0;
+        const hasWillPlane = gridCounts[9] > 0 && gridCounts[5] > 0 && gridCounts[1] > 0;
+        const hasActionPlane = gridCounts[2] > 0 && gridCounts[7] > 0 && gridCounts[6] > 0;
+
+        const KARMA_PHILOSOPHY = {
+          1: {
+            innate: 'स्वतंत्र नेतृत्व, स्वाभिमान और नई पहल करने का स्वाभाविक गुण (सूर्य तत्व)।',
+            purpose: 'अहंकार से ऊपर उठकर दूसरों को दिशा देना और सत्य व आत्मनिर्भरता का उदाहरण बनना।',
+            growth: 'विनम्रता, सेवा भाव और धैर्य अपनाने से आध्यात्मिक व सांसारिक दोनों उन्नति मिलती है।'
+          },
+          2: {
+            innate: 'गहरी संवेदनशीलता, अंतर्ज्ञान और दूसरों का दर्द समझने की कोमल प्रवृत्ति (चंद्र तत्व)।',
+            purpose: 'परिवार और समाज में प्रेम, शांति और भावनात्मक संतुलन का सेतु बनना।',
+            growth: 'अत्यधिक भावुकता के बजाय आत्मविश्वास और स्पष्ट सीमाएं सीखना जीवन को सशक्त बनाता है।'
+          },
+          3: {
+            innate: 'ज्ञान-पिपासा, वाणी की प्रभावशीलता और रचनात्मक अभिव्यक्ति (बृहस्पति तत्व)।',
+            purpose: 'शिक्षा, मार्गदर्शन और सकारात्मक विचारों के माध्यम से समाज में प्रकाश फैलाना।',
+            growth: 'अनुशासन और एक लक्ष्य पर एकाग्रता से आपकी आध्यात्मिक व बौद्धिक यात्रा शिखर पर जाती है।'
+          },
+          4: {
+            innate: 'तर्कशक्ति, व्यवस्था, कठिन परिश्रम और लीक से हटकर सोचने की क्षमता (राहु तत्व)।',
+            purpose: 'मजबूत नींव बनाना, धैर्यपूर्वक निर्माण करना और समाज के लिए उपयोगी व्यवस्थाएं गढ़ना।',
+            growth: 'लचीलापन और आभार (gratitude) का अभ्यास मन को शांत व स्थिर रखता है।'
+          },
+          5: {
+            innate: 'जिज्ञासा, संवाद कौशल, यात्रा-प्रेम और हर परिस्थिति में ढलने का गुण (बुध तत्व)।',
+            purpose: 'विचारों का आदान-प्रदान, सीखते रहना और परिवर्तन को सकारात्मक रूप से अपनाना।',
+            growth: 'स्थिरता, ध्यान और वचनबद्धता अपनाने से ऊर्जा बिखरती नहीं बल्कि सार्थक फल देती है।'
+          },
+          6: {
+            innate: 'देखभाल, सौंदर्य-बोध, जिम्मेदारी और परिवार-प्रेम का स्वाभाविक संस्कार (शुक्र तत्व)।',
+            purpose: 'रिश्तों में स्नेह, सेवा और कलात्मक सद्भाव के माध्यम से सबका कल्याण करना।',
+            growth: 'दूसरों की देखभाल के साथ आत्म-सम्मान और संतुलन बनाए रखना सबसे बड़ा कर्म-पाठ है।'
+          },
+          7: {
+            innate: 'गहरा चिंतन, शोध प्रवृत्ति, एकांत-प्रियता और आध्यात्मिक खोज का स्वभाव (केतु तत्व)।',
+            purpose: 'बाहरी दिखावे से परे जीवन के गहरे सत्य, ज्ञान और आत्म-साक्षात्कार को समझना।',
+            growth: 'भरोसा, खुला संवाद और करुणा अपनाने से आध्यात्मिक शांति और सांसारिक सुख दोनों सधते हैं।'
+          },
+          8: {
+            innate: 'न्यायप्रियता, सहनशीलता, कर्मठता और बड़ी जिम्मेदारियां संभालने की शक्ति (शनि तत्व)।',
+            purpose: 'सत्यनिष्ठा से कर्म करना, संघर्ष से सीखना और संसाधनों का न्यायपूर्ण उपयोग करना।',
+            growth: 'क्षमाशीलता और निस्वार्थ दान से कर्म-संतुलन मजबूत होता है।'
+          },
+          9: {
+            innate: 'साहस, करुणा, उदारता और मानवता की सेवा करने की प्रबल भावना (मंगल तत्व)।',
+            purpose: 'व्यापक कल्याण, नेतृत्व और निस्वार्थ सहायता के माध्यम से समाज पर सकारात्मक छाप छोड़ना।',
+            growth: 'क्रोध पर संयम और शांत करुणा से जीवन का उच्चतम उद्देश्य पूर्ण होता है।'
+          }
+        };
+        const kp = KARMA_PHILOSOPHY[bhagyank] || KARMA_PHILOSOPHY[1];
+
+        const PY_THEMES_HI = {
+          1: 'नई शुरुआत, नया काम व आत्मनिर्भरता',
+          2: 'साझेदारी, धैर्य व रिश्तों में मधुरता',
+          3: 'रचनात्मकता, शिक्षा व मान-सम्मान',
+          4: 'मेहनत, नींव निर्माण व अनुशासन',
+          5: 'बदलाव, यात्रा व नए अवसर',
+          6: 'परिवार, विवाह/घर सुख व जिम्मेदारी',
+          7: 'आत्मचिंतन, शोध व आध्यात्मिक शांति',
+          8: 'आर्थिक प्रगति, पदोन्नति व कर्मफल',
+          9: 'पूर्णता, समापन व नए चक्र की तैयारी'
+        };
+        const nineYearRows = Array.from({ length: 9 }, (_, i) => {
+          const yr = currentYear + i;
+          const py = reduceToSingleDigit(day + month + reduceToSingleDigit(yr));
+          return `<div class="p-2.5 rounded-xl bg-black/45 border ${i === 0 ? 'border-emerald-400/50 bg-emerald-950/30' : 'border-purple-400/20'}">
+            <div class="flex items-center justify-between font-bold text-xs"><span class="text-amber-200">${yr}</span><span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-200">अंक ${py}</span></div>
+            <div class="text-[11px] text-purple-100/85 mt-1">${PY_THEMES_HI[py] || ''}</div>
+          </div>`;
+        }).join('');
+
+        if (el('numLoShuKarmaCard')) {
+          el('numLoShuKarmaCard').innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div class="lg:col-span-5 gold-card rounded-2xl p-5 space-y-3 border border-amber-400/35">
+                <h4 class="text-sm sm:text-base font-bold text-amber-200">🔢 संपूर्ण लो-शू ग्रिड (Lo-Shu Grid 3×3)</h4>
+                <div class="grid grid-cols-3 gap-2">
+                  ${LOSHU_ORDER.map((n) => {
+                    const cnt = gridCounts[n];
+                    const txt = cnt > 0 ? String(n).repeat(Math.min(4, cnt)) : '—';
+                    return `<div class="p-3 rounded-xl text-center border ${cnt > 0 ? 'bg-amber-500/15 border-amber-400/45' : 'bg-black/50 border-purple-400/20 opacity-70'}">
+                      <div class="text-lg font-extrabold ${cnt > 0 ? 'text-amber-300' : 'text-purple-400/60'}">${txt}</div>
+                      <div class="text-[10px] text-purple-200/85">${LOSHU_LABELS[n]}</div>
+                    </div>`;
+                  }).join('')}
+                </div>
+                <div class="space-y-1.5 text-xs pt-1">
+                  <div class="flex flex-wrap gap-1.5">
+                    ${hasGoldenRajyog ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-200 font-bold">★ गोल्डन राजयोग (4-5-6)</span>' : ''}
+                    ${hasSilverRajyog ? '<span class="px-2 py-0.5 rounded-full bg-cyan-500/25 text-cyan-200 font-bold">★ सिल्वर राजयोग (2-5-8)</span>' : ''}
+                    ${hasWillPlane ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200">✓ प्रबल इच्छाशक्ति (9-5-1)</span>' : ''}
+                    ${hasThoughtPlane ? '<span class="px-2 py-0.5 rounded-full bg-purple-500/25 text-purple-200">✓ विचार शक्ति (4-3-8)</span>' : ''}
+                    ${hasActionPlane ? '<span class="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-200">✓ कर्म योग (2-7-6)</span>' : ''}
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-black/45 border border-purple-400/20 text-[11px] text-purple-100/90">
+                    <strong>अनुपस्थित अंक (Missing Numbers):</strong> ${missingNums.length ? missingNums.join(', ') : 'कोई नहीं (पूर्ण संतुलित ग्रिड!)'}
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-7 gold-card rounded-2xl p-5 space-y-3 border border-purple-400/35">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <h4 class="text-sm sm:text-base font-bold text-purple-200">🕉️ पारंपरिक कर्म-दर्शन एवं आध्यात्मिक चिंतन (भाग्यांक ${bhagyank})</h4>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-200">दार्शनिक मार्गदर्शन</span>
+                </div>
+                <div class="space-y-2.5 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+                  <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25">
+                    <strong class="text-amber-300 block mb-0.5">🌱 सहज प्रवृत्ति व पूर्व-संस्कार संकेत (Innate Strengths):</strong>
+                    ${kp.innate}
+                  </div>
+                  <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25">
+                    <strong class="text-cyan-300 block mb-0.5">🎯 वर्तमान मानव जीवन का उद्देश्य व कर्म-सीख:</strong>
+                    ${kp.purpose} ${missingNums.length ? `लो-शू ग्रिड में अनुपस्थित अंक (${missingNums.slice(0, 3).join(', ')}) इस जीवन में उन गुणों को अभ्यास से विकसित करने का पारंपरिक संकेत देते हैं।` : ''}
+                  </div>
+                  <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25">
+                    <strong class="text-emerald-300 block mb-0.5">✨ आगामी आध्यात्मिक प्रगति की दिशा:</strong>
+                    ${kp.growth}
+                  </div>
+                </div>
+                <p class="text-[11px] text-purple-300/80 bg-black/40 p-2.5 rounded-xl border border-purple-400/20">
+                  <strong>पारदर्शी नोट:</strong> यह भाग पारंपरिक भारतीय अंकशास्त्र व कर्म-दर्शन पर आधारित आत्म-चिंतन मार्गदर्शन है। कोई भी सॉफ्टवेयर या गणना पिछले जन्म के स्थान/परिवार, भाई-बहनों की संख्या या भविष्य के बच्चों की संख्या/लिंग का तथ्यात्मक दावा नहीं कर सकती।
+                </p>
+              </div>
+            </div>
+
+            <div class="gold-card rounded-2xl p-5 space-y-3 border border-cyan-400/30">
+              <h4 class="text-sm sm:text-base font-bold text-cyan-200">📅 आगामी 9 वर्षों का व्यक्तिगत वर्ष चक्र (${currentYear} – ${currentYear + 8})</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">${nineYearRows}</div>
+            </div>
+          `;
+        }
 
         el('numDisclaimerBox').textContent = isEn
           ? 'Disclaimer: Numerology & Name Correction readings are traditional symbolic guidance for personal reflection and clarity—not guaranteed predictions.'

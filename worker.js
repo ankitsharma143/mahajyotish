@@ -118,38 +118,37 @@ export default {
       });
     }
 
-    // 1b. Universal Village / Town / City Search Proxy (India + Global)
+    // 1b. Universal Global Village / Town / City Search Proxy (All Countries + Exact IANA Timezone)
     if (path === '/api/search-place' && request.method === 'GET') {
       const q = (url.searchParams.get('q') || '').trim();
       if (q.length < 2) return jsonRes({ results: [] });
       const results = [];
       const seen = new Set();
-      const pushUnique = (display, lat, lon, tz = 5.5) => {
+      const pushUnique = (display, lat, lon, tz = 5.5, ianaTz = '') => {
         const key = `${Number(lat).toFixed(2)},${Number(lon).toFixed(2)}`;
         if (!display || Number.isNaN(Number(lat)) || Number.isNaN(Number(lon)) || seen.has(key)) return;
         seen.add(key);
-        results.push({ display: display.slice(0, 88), lat: Number(lat).toFixed(4), lon: Number(lon).toFixed(4), tz });
+        results.push({ display: display.slice(0, 88), lat: Number(lat).toFixed(4), lon: Number(lon).toFixed(4), tz, ianaTz });
       };
 
       try {
-        const omRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=12&language=en&format=json`, {
-          signal: AbortSignal.timeout(15000)
+        const omRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=15&language=en&format=json`, {
+          signal: AbortSignal.timeout(7000)
         });
         if (omRes.ok) {
           const omJson = await omRes.json();
           const list = Array.isArray(omJson?.results) ? omJson.results : [];
-          list.sort((a, b) => (b.country_code === 'IN' ? 1 : 0) - (a.country_code === 'IN' ? 1 : 0));
           for (const r of list) {
             const parts = [r.name, r.admin2, r.admin1, r.country].filter(Boolean);
             const tz = r.country_code === 'IN' ? 5.5 : Math.round((Number(r.longitude || 0) / 15) * 2) / 2;
-            pushUnique(parts.join(', '), r.latitude, r.longitude, tz);
+            pushUnique(parts.join(', '), r.latitude, r.longitude, tz, r.timezone || (r.country_code === 'IN' ? 'Asia/Kolkata' : ''));
           }
         }
       } catch (_) {}
 
       if (results.length < 6) {
         try {
-          const nomRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(q + ', India')}`, {
+          const nomRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(q)}`, {
             headers: { 'Accept': 'application/json', 'User-Agent': 'MAHAJYOTISH-App/1.0' },
             signal: AbortSignal.timeout(7000)
           });
@@ -157,7 +156,9 @@ export default {
             const rows = await nomRes.json();
             if (Array.isArray(rows)) {
               for (const r of rows) {
-                pushUnique(r.display_name, r.lat, r.lon, 5.5);
+                const cc = String(r.address?.country_code || '').toUpperCase();
+                const tz = cc === 'IN' ? 5.5 : Math.round((Number(r.lon || 0) / 15) * 2) / 2;
+                pushUnique(r.display_name, r.lat, r.lon, tz, cc === 'IN' ? 'Asia/Kolkata' : '');
               }
             }
           }
@@ -177,7 +178,7 @@ export default {
               const coords = f.geometry?.coordinates || [];
               const parts = [p.name, p.county || p.city, p.state, p.country].filter(Boolean);
               const tz = p.countrycode === 'IN' ? 5.5 : Math.round((Number(coords[0] || 0) / 15) * 2) / 2;
-              pushUnique(parts.join(', '), coords[1], coords[0], tz);
+              pushUnique(parts.join(', '), coords[1], coords[0], tz, p.countrycode === 'IN' ? 'Asia/Kolkata' : '');
             }
           }
         } catch (_) {}
