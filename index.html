@@ -1580,6 +1580,7 @@
               <div class="flex flex-wrap items-center justify-center gap-2">
                 <button id="capturePhotoBtn" type="button" class="btn-gold px-5 py-2.5 rounded-xl text-xs sm:text-sm">फोटो कैप्चर करें (Capture)</button>
                 <button id="flipCameraBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">कैमरा बदलें (Flip)</button>
+                <button id="torchToggleBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">🔦 फ्लैश: AUTO</button>
                 <button id="mirrorCameraBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">🪞 मिरर: OFF</button>
                 <button id="toggleGuideBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">🖐️ गाइड: ON</button>
                 <button id="autoCaptureToggleBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">⚡ ऑटो-कैप्चर: ON</button>
@@ -1866,7 +1867,7 @@
       <div id="reportSectionsContainer" class="space-y-3"></div>
 
       <!-- Structured JSON Inspector (for developers / verification) -->
-      <div class="no-print gold-card-subtle rounded-2xl p-4 space-y-2">
+      <div class="hidden no-print gold-card-subtle rounded-2xl p-4 space-y-2">
         <button id="toggleJsonBtn" type="button" class="text-xs font-semibold text-amber-300 hover:underline">
           { } Structured 31-Field JSON Output देखें / छिपाएं
         </button>
@@ -3318,6 +3319,10 @@
               }
             }
             const avgLum = lumSum / (96 * 96);
+            if (!state.torchMode) state.torchMode = 'auto';
+            if (state.torchMode === 'auto' && avgLum < 78 && !state.torchActive && state.facingMode === 'environment') {
+              setCameraTorch(true);
+            }
             const lapVar = lCnt > 0 ? lSq / lCnt - Math.pow(lSum / lCnt, 2) : 0;
             const skinPct = centerPx > 0 ? centerSkin / centerPx : 0;
             const isEn = state.lang === 'en';
@@ -3414,7 +3419,32 @@
         }
       }
 
+      async function setCameraTorch(enable) {
+        try {
+          if (!state.cameraStream) return false;
+          const track = state.cameraStream.getVideoTracks()[0];
+          if (!track) return false;
+          const caps = typeof track.getCapabilities === 'function' ? track.getCapabilities() : {};
+          if (!caps || !caps.torch) return false;
+          await track.applyConstraints({ advanced: [{ torch: Boolean(enable) }] });
+          state.torchActive = Boolean(enable);
+          const btn = el('torchToggleBtn');
+          if (btn) {
+            btn.textContent = state.torchMode === 'auto'
+              ? (state.torchActive ? '🔦 फ्लैश: ON (Auto)' : '🔦 फ्लैश: AUTO')
+              : (state.torchActive ? '🔦 फ्लैश: ON' : '🔦 फ्लैश: OFF');
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
       function stopCamera() {
+        if (state.torchActive) {
+          setCameraTorch(false);
+          state.torchActive = false;
+        }
         if (state.liveHudTimer) {
           clearInterval(state.liveHudTimer);
           state.liveHudTimer = null;
@@ -11313,6 +11343,24 @@
         el('startCameraBtn').addEventListener('click', startCamera);
         el('stopCameraBtn').addEventListener('click', stopCamera);
         el('capturePhotoBtn').addEventListener('click', captureFromCamera);
+        if (el('torchToggleBtn')) {
+          el('torchToggleBtn').addEventListener('click', async () => {
+            const cur = state.torchMode || 'auto';
+            if (cur === 'auto') {
+              state.torchMode = 'on';
+              const ok = await setCameraTorch(true);
+              if (!ok) showToast('यह ब्राउज़र या फ्रंट कैमरा फ्लैशलाइट सपोर्ट नहीं करता (रियर कैमरा चुनें)।');
+            } else if (cur === 'on') {
+              state.torchMode = 'off';
+              await setCameraTorch(false);
+              el('torchToggleBtn').textContent = '🔦 फ्लैश: OFF';
+            } else {
+              state.torchMode = 'auto';
+              await setCameraTorch(false);
+              el('torchToggleBtn').textContent = '🔦 फ्लैश: AUTO';
+            }
+          });
+        }
         el('flipCameraBtn').addEventListener('click', () => {
           state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
           startCamera();
