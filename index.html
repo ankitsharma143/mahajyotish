@@ -10293,58 +10293,40 @@
             pdf.setTextColor(180, 165, 210);
             pdf.setFontSize(8);
             pdf.text(`MAHAJYOTISH • Page ${totalPagesCount}`, pageW / 2, pageH - 4, { align: 'center' });
-            return isFirst ? 16 : 9;
+            return isFirst ? 15 : 8;
           };
 
-          const collectPdfBlocks = (rootEl) => {
-            const blocks = [];
-            const walk = (node, depth) => {
-              if (!node || node.nodeType !== 1) return;
-              if (node.classList.contains('no-print') || node.classList.contains('hidden')) return;
-              const rect = node.getBoundingClientRect();
-              if (rect.height < 10 || rect.width < 20) return;
-
-              const isCard = node.classList.contains('gold-card') || node.classList.contains('gold-card-subtle') || node.classList.contains('accordion-item');
-              const maxAtomicPx = Math.max(520, rect.width * 1.25);
-
-              // If it's a compact card or leaf element, keep it whole (NEVER cut!)
-              if (isCard && rect.height <= maxAtomicPx) {
-                blocks.push(node);
-                return;
-              }
-              const visKids = Array.from(node.children).filter((c) => {
-                if (!c || c.nodeType !== 1) return false;
-                if (c.classList.contains('no-print') || c.classList.contains('hidden')) return false;
-                const cr = c.getBoundingClientRect();
-                return cr.height >= 10 && cr.width >= 20;
-              });
-              if (!visKids.length || depth >= 4) {
-                blocks.push(node);
-                return;
-              }
-              // Keep small grids/rows together if they fit cleanly
-              if (rect.height <= maxAtomicPx * 0.72 && depth >= 1) {
-                blocks.push(node);
-                return;
-              }
-              visKids.forEach((child) => walk(child, depth + 1));
-            };
-            walk(rootEl, 0);
-            return blocks;
-          };
-
-          let cardRenderedOk = false;
+          let renderedOk = false;
 
           if (typeof window.html2canvas !== 'undefined') {
-            try {
-              await new Promise((r) => setTimeout(r, 90));
-              const blocks = collectPdfBlocks(targetEl);
-              if (blocks.length > 0) {
-                let cursorY = initDarkPage(true);
-                const pageBottom = pageH - 10;
-                const maxSingleH = pageBottom - 10;
+            // Temporarily hide .no-print elements so DOM bounding rects match html2canvas 100% (ZERO pixel drift!)
+            const noPrintNodes = Array.from(targetEl.querySelectorAll('.no-print'));
+            const prevDisplays = noPrintNodes.map((n) => n.style.display);
+            noPrintNodes.forEach((n) => { n.style.display = 'none'; });
 
-                const sanitizeClone = (doc) => {
+            try {
+              await new Promise((r) => setTimeout(r, 60));
+              const targetRect = targetEl.getBoundingClientRect();
+              const domH = Math.max(1, targetRect.height);
+
+              // Collect exact pixel-accurate atomic block ranges BEFORE capture
+              const rawBlocks = [];
+              targetEl.querySelectorAll('.gold-card, .gold-card-subtle, .accordion-item, tr, canvas, svg, li, .grid > div').forEach((node) => {
+                if (node.classList.contains('hidden')) return;
+                const nr = node.getBoundingClientRect();
+                if (nr.height < 12 || nr.width < 20) return;
+                rawBlocks.push({
+                  topFrac: (nr.top - targetRect.top) / domH,
+                  botFrac: (nr.bottom - targetRect.top) / domH
+                });
+              });
+
+              const fullCanvas = await window.html2canvas(targetEl, {
+                scale: 1.3,
+                backgroundColor: '#0e081c',
+                useCORS: true,
+                logging: false,
+                onclone: (doc) => {
                   doc.querySelectorAll('*').forEach((elNode) => {
                     const cs = doc.defaultView.getComputedStyle(elNode);
                     if (cs && cs.backgroundImage && cs.backgroundImage.includes('oklch')) elNode.style.backgroundImage = 'none';
@@ -10356,55 +10338,73 @@
                     n.style.whiteSpace = 'normal';
                     n.style.lineHeight = '1.55';
                   });
-                };
-
-                for (let i = 0; i < blocks.length; i++) {
-                  const blk = blocks[i];
-                  const c = await window.html2canvas(blk, {
-                    scale: 1.45,
-                    backgroundColor: '#0e081c',
-                    useCORS: true,
-                    logging: false,
-                    ignoreElements: (node) => node.classList && node.classList.contains('no-print'),
-                    onclone: sanitizeClone
-                  });
-                  if (!c || c.width < 4 || c.height < 4) continue;
-
-                  let drawW = usableW;
-                  let drawH = (c.height / c.width) * drawW;
-
-                  if (drawH > maxSingleH) {
-                    // Start fresh page & scale proportionally so the entire tall card fits cleanly with ZERO cutting
-                    if (cursorY > 18) cursorY = initDarkPage(false);
-                    const availH = pageBottom - cursorY;
-                    const ratio = availH / drawH;
-                    drawH = availH;
-                    drawW = drawW * ratio;
-                  } else if (cursorY + drawH > pageBottom) {
-                    cursorY = initDarkPage(false);
-                  }
-
-                  const drawX = margin + (usableW - drawW) / 2;
-                  pdf.addImage(c.toDataURL('image/jpeg', 0.90), 'JPEG', drawX, cursorY, drawW, drawH);
-                  cursorY += drawH + 3.2;
                 }
-                cardRenderedOk = totalPagesCount > 0;
+              });
+
+              if (fullCanvas && fullCanvas.width > 0 && fullCanvas.height > 0) {
+                const imgW = fullCanvas.width;
+                const imgH = fullCanvas.height;
+                const pxPerMm = imgW / usableW;
+                const firstPageSlicePx = Math.floor((pageH - 15 - 9) * pxPerMm);
+                const normalPageSlicePx = Math.floor((pageH - 8 - 9) * pxPerMm);
+
+                const atomicPx = rawBlocks
+                  .map((b) => ({ top: Math.floor(b.topFrac * imgH), bottom: Math.ceil(b.botFrac * imgH) }))
+                  .filter((b) => (b.bottom - b.top) > 12 && (b.bottom - b.top) <= normalPageSlicePx * 0.85 && b.top >= 0 && b.bottom <= imgH);
+
+                let offsetY = 0;
+                let pageIndex = 0;
+                while (offsetY < imgH) {
+                  const maxSlice = pageIndex === 0 ? firstPageSlicePx : normalPageSlicePx;
+                  let cutY = Math.min(offsetY + maxSlice, imgH);
+                  if (cutY < imgH) {
+                    for (let pass = 0; pass < 4; pass++) {
+                      let bestTop = cutY;
+                      for (let i = 0; i < atomicPx.length; i++) {
+                        const b = atomicPx[i];
+                        if (b.top < cutY && b.bottom > cutY && b.top > offsetY + 80) {
+                          if (b.top < bestTop) bestTop = b.top;
+                        }
+                      }
+                      if (bestTop < cutY) {
+                        cutY = Math.max(offsetY + 80, bestTop - 4);
+                      } else {
+                        break;
+                      }
+                    }
+                  }
+                  const hPx = Math.max(1, cutY - offsetY);
+                  const sc = document.createElement('canvas');
+                  sc.width = imgW;
+                  sc.height = hPx;
+                  const sCtx = sc.getContext('2d');
+                  sCtx.fillStyle = '#0e081c';
+                  sCtx.fillRect(0, 0, imgW, hPx);
+                  sCtx.drawImage(fullCanvas, 0, offsetY, imgW, hPx, 0, 0, imgW, hPx);
+
+                  const startY = initDarkPage(pageIndex === 0);
+                  const drawH = (hPx / imgW) * usableW;
+                  pdf.addImage(sc.toDataURL('image/jpeg', 0.88), 'JPEG', margin, startY, usableW, drawH);
+
+                  offsetY = cutY;
+                  pageIndex++;
+                  if (pageIndex > 80) break;
+                }
+                renderedOk = totalPagesCount > 0;
               }
             } catch (h2cErr) {
-              cardRenderedOk = false;
+              renderedOk = false;
+            } finally {
+              noPrintNodes.forEach((n, idx) => { n.style.display = prevDisplays[idx]; });
             }
           }
 
-          // Guaranteed native Canvas Devanagari Fallback if html2canvas failed
-          if (!cardRenderedOk) {
+          if (!renderedOk) {
             const fallbackPages = renderDomTextToCanvases(targetEl, filePrefix);
-            totalPagesCount = fallbackPages.length;
             fallbackPages.forEach((pgCanvas, idx) => {
-              if (idx > 0) pdf.addPage();
-              pdf.setFillColor(14, 8, 28);
-              pdf.rect(0, 0, pageW, pageH, 'F');
-              const hMm = Math.min(usableH, (pgCanvas.height / pgCanvas.width) * usableW);
-              pdf.addImage(pgCanvas.toDataURL('image/jpeg', 0.90), 'JPEG', margin, margin, usableW, hMm);
+              const startY = initDarkPage(idx === 0);
+              const hMm = Math.min(pageH - startY - 9, (pgCanvas.height / pgCanvas.width) * usableW);
+              pdf.addImage(pgCanvas.toDataURL('image/jpeg', 0.90), 'JPEG', margin, startY, usableW, hMm);
             });
           }
 
