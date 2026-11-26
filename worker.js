@@ -330,15 +330,21 @@ Ensure "detected_features" is an object containing: hand_analyzed, palm_type, fi
         let prompt = '';
 
         if (mode === 'kundli') {
-          prompt = `You are a Master Indian Vedic Astrologer (Parashari + Lal Kitab). Generate a 100% UNIQUE, deeply detailed, crystal-clear point-by-point Janam Kundli reading in ${targetLang} strictly derived from this person's exact astronomical chart (NEVER repeat generic filler; cite their exact Lagna, Moon Sign, Nakshatra+Pada, Retrograde/Combust planets, 12 House Lords, and exact Mahadasha/Antardasha/Pratyantardasha dates):
+          prompt = `You are a Master Indian Vedic Astrologer (Parashari + Bhrigu + Lal Kitab). Generate a 100% UNIQUE, ultra-detailed, crystal-clear Janam Kundli Life Report in ${targetLang} strictly derived from THIS person's exact astronomical chart (NEVER write short generic lines; explain every single point thoroughly in easy Hindi/English citing their exact Lagna, 7th House, 10th House, Moon Sign, Nakshatra+Pada, Retrograde/Combust planets, Yogas, Doshas & exact Mahadasha/Antardasha dates):
 ${JSON.stringify(data).slice(0, 7500)}
-Return ONLY valid JSON with keys:
-- past_timeline (4-5 sentences explaining key past phases & turning points strictly using their completed Mahadasha years from birth till today)
-- present_situation (4-5 sentences explaining what is happening right now using their active Mahadasha, Antardasha, Pratyantardasha & live Saturn/Jupiter Gochar)
-- future_roadmap (4-5 sentences explaining the next 5 years for career, money, property & major milestones with specific upcoming years)
-- marriage_and_family (4 sentences covering 7th house sign, 7th lord placement, Venus/Jupiter, Manglik status, marriage timing & married life harmony)
-- graha_nakshatra_deep (4 sentences explaining their Birth Nakshatra + Pada, any Retrograde/Combust or Exalted/Debilitated planets, and active Yogas/Doshas in simple Hindi)
-- tailored_remedies (array of 5 specific, practical Vedic & Lal Kitab remedies strictly for THIS chart's weak/debilitated/afflicted planets & active dasha)`;
+Return ONLY valid JSON with these 10 keys:
+- marriage_timing_and_type (4-5 sentences: exact favorable marriage years & age window, Love vs Arranged probability, and 7th lord / Venus / Jupiter role)
+- spouse_appearance_and_nature (4-5 sentences: detailed description of future spouse's complexion/face/build/eyes/aura, temperament, profession & likely direction from birthplace)
+- career_best_fields (4-5 sentences: exact top 4-5 best career/job/business fields suited to their 10th house, 10th lord, D10 & Sun/Saturn/Mercury/Jupiter — clearly comparing Govt Job vs Private vs Business)
+- wealth_property_vehicle (3-4 sentences: money accumulation, property/home/vehicle yoga and peak financial growth years)
+- past_timeline (4 sentences: key past life phases & struggles/achievements strictly from their completed Mahadasha years)
+- present_situation (4 sentences: what is happening right now from their active Mahadasha, Antardasha, Pratyantardasha & live Saturn/Jupiter Gochar)
+- future_roadmap (4-5 sentences: detailed year-by-year outlook for the next 5 to 10 years covering breakthroughs, promotions, wealth & major milestones)
+- all_doshas_and_yogas_deep (4-5 sentences: honest, clear check of Manglik, Kaal Sarp, Pitra Dosha, Grahan Dosha, Kemdrum Dosha, Shani Sade Sati/Dhaiya & Rajyogas — explaining clearly which ones exist, which do NOT exist, and their real impact)
+- health_and_family_life (3-4 sentences: health tendencies, mental peace, parents & family harmony)
+- friends_social_network (3-4 sentences from 3rd & 11th house: friendships, social circle, who genuinely supports them vs who to be cautious with)
+- planet_by_planet_impact (5-6 clear bullet-style sentences explaining in simple Hindi what each major planet is actively causing in their life due to its exact house & dignity)
+- tailored_remedies (array of 6 specific, practical Vedic & Lal Kitab remedies strictly tailored to THIS chart's weak/afflicted planets & active dasha)`;
         } else if (mode === 'name_correction') {
           prompt = `You are an Expert Chaldean & Vedic Numerologist. Give a UNIQUE, personalized Name Correction & Vibration Analysis in ${targetLang} for:
 ${JSON.stringify(data).slice(0, 4000)}
@@ -384,7 +390,7 @@ Return ONLY valid JSON with keys:
 
         const result = await callGemini(apiKey, model, {
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.72, maxOutputTokens: 3072, responseMimeType: 'application/json' }
+          generationConfig: { temperature: 0.72, maxOutputTokens: 4096, responseMimeType: 'application/json' }
         });
         if (!result.ok) {
           return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}: ${result.errTxt.slice(0, 220)}` }, 502);

@@ -6563,7 +6563,55 @@
           ${activePratyantardasha ? `<div><strong>⏱️ सक्रिय प्रत्यंतर्दशा:</strong> ${activeDasha.lord} – ${activeAntardasha.lord} – ${activePratyantardasha.lord} (${activePratyantardasha.from} से ${activePratyantardasha.to})</div>` : ''}
         </div>`;
 
+        const k7Idx = (lagnaIdx + 6) % 12;
+        const k10Idx = (lagnaIdx + 9) % 12;
+        const kSpouseProf = (typeof SEVENTH_HOUSE_PROFILES !== 'undefined' && SEVENTH_HOUSE_PROFILES[k7Idx]) ? SEVENTH_HOUSE_PROFILES[k7Idx] : null;
+        const kAgeNow = Math.max(18, new Date().getFullYear() - y);
+        const kMarStart = Math.max(new Date().getFullYear(), y + Math.max(kAgeNow, 24) + ((k7Idx + d) % 3));
+        const kMarEnd = kMarStart + 1;
+        const CAREER_BY_10TH = [
+          'पुलिस/डिफेंस, सरकारी प्रशासन, इंजीनियरिंग, प्रॉपर्टी, खेल व स्वतंत्र उद्यम',
+          'बैंकिंग, फाइनेंस, फैशन/डिजाइन, ज्वेलरी, होटल, मीडिया व स्थिर कॉर्पोरेट सेवा',
+          'आईटी/सॉफ्टवेयर, डिजिटल मार्केटिंग, शिक्षण, मीडिया, अकाउंटिंग व कंसल्टिंग',
+          'चिकित्सा/स्वास्थ्य, होटल/फूड, सरकारी जनसेवा, शिक्षा, एचआर व रियल एस्टेट',
+          'सरकारी अधिकारी (IAS/PCS), उच्च प्रबंधन, राजनीति, डॉक्टर, सीए व बड़ा व्यापार',
+          'चार्टर्ड अकाउंटेंट, बैंकिंग, आईटी/डेटा, फार्मा/मेडिकल, कानून, रिसर्च व शिक्षण',
+          'कानून/वकालत, फैशन, इंटीरियर डिजाइन, पीआर/मीडिया, इवेंट व पार्टनरशिप व्यापार',
+          'साइबर/टेक्नोलॉजी, सर्जरी/मेडिकल, रिसर्च, इन्वेस्टिगेशन, फाइनेंस व खनिज/रियल एस्टेट',
+          'प्रोफेसर/शिक्षा, न्यायपालिका, बैंकिंग, कंसल्टिंग, सरकारी पद, टूरिज़्म व प्रबंधन',
+          'सरकारी सेवा, सिविल/मैकेनिकल इंजीनियरिंग, लॉ, कंस्ट्रक्शन, कृषि/उद्योग व बड़ा व्यवसाय',
+          'टेक्नोलॉजी/AI, रिसर्च, एविएशन, इलेक्ट्रॉनिक्स, स्टार्टअप, सोशल सेक्टर व इनोवेशन',
+          'शिक्षा, कला/संगीत/मीडिया, मेडिकल/हीलिंग, विदेश व्यापार/MNC, काउंसलिंग व एनजीओ'
+        ];
+        const kHasGrahan = sunP.house === rahuP.house || sunP.house === enriched[8].house || moonP.house === rahuP.house || moonP.house === enriched[8].house;
+        const moonPrevH = ((moonP.house + 10) % 12) + 1;
+        const moonNextH = (moonP.house % 12) + 1;
+        const hasKemdrum = !enriched.slice(2, 7).some((p) => p.house === moonPrevH || p.house === moonNextH);
+        const instantDeepCards = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm pb-2">
+            <div class="p-3.5 rounded-xl bg-pink-950/35 border border-pink-400/35 space-y-1">
+              <div class="font-bold text-pink-200">💍 शादी कब होगी व जीवनसाथी का रंग-रूप (सप्तम भाव: ${RASHIS_HI[k7Idx]})</div>
+              <p class="text-purple-100/90 leading-relaxed"><strong>प्रबल विवाह समय:</strong> वर्ष <strong>${kMarStart} – ${kMarEnd}</strong> के बीच। <strong>रंग-रूप व चेहरा:</strong> ${kSpouseProf ? kSpouseProf.appearance : 'सौम्य व आकर्षक व्यक्तित्व।'} <strong>स्वभाव:</strong> ${kSpouseProf ? kSpouseProf.nature : ''}</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-cyan-950/35 border border-cyan-400/35 space-y-1">
+              <div class="font-bold text-cyan-200">💼 करियर के सर्वोत्तम क्षेत्र (दशम भाव: ${RASHIS_HI[k10Idx]} • स्वामी ${RASHI_LORDS_HI[k10Idx]})</div>
+              <p class="text-purple-100/90 leading-relaxed">आपके दशम भाव व ग्रहों के अनुसार ये क्षेत्र सबसे शुभ रहेंगे: <strong>${CAREER_BY_10TH[k10Idx]}</strong>।</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-teal-950/30 border border-teal-400/35 space-y-1">
+              <div class="font-bold text-teal-200">🤝 दोस्त, समाज व नेटवर्क (11वां भाव: ${RASHIS_HI[(lagnaIdx + 10) % 12]} • 3रा भाव: ${RASHIS_HI[(lagnaIdx + 2) % 12]})</div>
+              <p class="text-purple-100/90 leading-relaxed">लाभ व मित्र भाव (${RASHIS_HI[(lagnaIdx + 10) % 12]}, स्वामी ${RASHI_LORDS_HI[(lagnaIdx + 10) % 12]}) दर्शाता है कि चुनिंदा विश्वसनीय मित्र और प्रोफेशनल संपर्क आपके करियर व आय में मददगार रहेंगे; गुप्त बातें केवल परखे हुए लोगों से साझा करें।</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-400/35 space-y-1">
+              <div class="font-bold text-rose-200">⚠️ अतिरिक्त दोष जांच (ग्रहण दोष व केमद्रुम दोष)</div>
+              <p class="text-purple-100/90 leading-relaxed">
+                <strong>ग्रहण दोष:</strong> ${kHasGrahan ? '⚠ सूर्य/चंद्र के साथ राहु/केतु युति — शिव अभिषेक व महामृत्युंजय मंत्र लाभकारी।' : '✓ ग्रहण दोष नहीं है।'} &nbsp;|&nbsp;
+                <strong>केमद्रुम दोष:</strong> ${hasKemdrum ? '⚠ चंद्रमा के दोनों ओर ग्रह नहीं हैं — सोमवार को शिव पूजा व मोती/चांदी धारण शुभ।' : '✓ केमद्रुम दोष नहीं है (मन व भाग्य सुरक्षित)।'}
+              </p>
+            </div>
+          </div>
+        `;
         el('kundliDeepReadCard').innerHTML = `
+          ${instantDeepCards}
           ${dashaExactBanner}
           <h3 class="mystic-title text-base sm:text-lg font-bold text-cyan-200 pt-1">🏛️ सभी 12 भावों का एक-एक बिंदु आसान हिंदी फलादेश (1st – 12th House)</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">${twelveHousesHtml}</div>
@@ -6571,15 +6619,23 @@
           <p class="text-xs text-purple-200/80">आपकी कुंडली के हर ग्रह की वास्तविक स्थिति के अनुसार यह बताया गया है कि किस भाव में कौन सा ग्रह होने से क्या शुभ फल या चुनौती मिलती है:</p>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
             ${enriched
-              .map(
-                (p) => `
-                <div class="p-3 rounded-xl bg-black/45 border border-amber-400/20 space-y-1">
-                  <div class="font-bold text-amber-200">${p.hi} → भाव ${p.house} (${RASHIS_HI[p.rIdx]})</div>
-                  <div class="text-[11px] text-cyan-300">क्षेत्र: ${HOUSE_THEMES_HI[p.house]}</div>
-                  <p class="text-purple-100/90 leading-relaxed">भाव ${p.house} में ${p.hi} की उपस्थिति ${PLANET_EFFECT_HI[p.hi]}। (${NAKSHATRAS_HI[p.nakIdx]} नक्षत्र, चरण ${p.pada})</p>
+              .map((p) => {
+                const aspOffsets = p.code === 'गु' ? [5, 7, 9] : p.code === 'मं' ? [4, 7, 8] : p.code === 'श' ? [3, 7, 10] : p.code === 'रा' || p.code === 'के' ? [5, 7, 9] : [7];
+                const aspHouses = aspOffsets.map((off) => ((p.house - 1 + off - 1) % 12) + 1);
+                const stateNote = p.dignity.includes('उच्च') ? 'यहाँ उच्च अवस्था में होने से यह ग्रह अत्यंत शुभ व प्रबल फल दे रहा है।' : p.dignity.includes('स्वराशि') ? 'अपनी स्वराशि में होने से यह ग्रह आपको मजबूत सुरक्षा व स्थिर परिणाम दे रहा है।' : p.dignity.includes('नीच') ? 'नीच अवस्था में होने से इस क्षेत्र में अतिरिक्त मेहनत व उपाय लाभकारी रहते हैं।' : 'सम अवस्था में रहकर यह ग्रह संतुलित परिणाम दे रहा है।';
+                const extraFlags = `${p.retro && p.code !== 'रा' && p.code !== 'के' ? ' वक्री होने से इस भाव के फल देर से लेकिन गहरे व स्थायी मिलते हैं।' : ''}${p.combust ? ' सूर्य के निकट (अस्त) होने से इसके फल उभारने हेतु नियमित उपाय सहायक हैं।' : ''}`;
+                return `
+                <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25 space-y-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="font-bold text-amber-200">${p.hi} → भाव ${p.house} (${RASHIS_HI[p.rIdx]})</span>
+                    <span class="text-[10px] ${p.dignityColor}">${p.dignity}</span>
+                  </div>
+                  <div class="text-[11px] text-cyan-300">असर क्षेत्र: ${HOUSE_THEMES_HI[p.house]}</div>
+                  <div class="text-[10px] text-pink-200/90">👁️ वैदिक दृष्टि: भाव ${aspHouses.join(', ')} पर सीधी दृष्टि • ${NAKSHATRAS_HI[p.nakIdx]} (चरण ${p.pada})</div>
+                  <p class="text-purple-100/90 leading-relaxed">भाव ${p.house} में ${p.hi} होने से ${PLANET_EFFECT_HI[p.hi]}। ${stateNote}${extraFlags}</p>
                 </div>
-              `
-              )
+              `;
+              })
               .join('')}
           </div>
         `;
@@ -10837,11 +10893,17 @@
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">Real AI Personalized</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-              <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25"><strong class="text-amber-300 block mb-1">🕰️ भूतकाल (Past — बीती महादशाओं का सटीक विश्लेषण):</strong>${escapeHtml(ai.past_timeline || ai.personality_summary || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-cyan-300 block mb-1">⚡ वर्तमान स्थिति (Present — सक्रिय दशा व गोचर):</strong>${escapeHtml(ai.present_situation || ai.career_wealth || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25"><strong class="text-emerald-300 block mb-1">🚀 आगामी भविष्य (Future — अगले 5 वर्षों का रोडमैप):</strong>${escapeHtml(ai.future_roadmap || ai.next_2_years || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-pink-400/25"><strong class="text-pink-300 block mb-1">💍 विवाह, जीवनसाथी व पारिवारिक सुख:</strong>${escapeHtml(ai.marriage_and_family || ai.love_marriage || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-purple-400/25 md:col-span-2"><strong class="text-purple-200 block mb-1">🪐 ग्रह, जन्म नक्षत्र व वक्री/अस्त स्थिति का आसान अर्थ:</strong>${escapeHtml(ai.graha_nakshatra_deep || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-pink-400/35"><strong class="text-pink-300 block mb-1">💍 शादी कब होगी व लव/अरेंज योग:</strong>${escapeHtml(ai.marriage_timing_and_type || ai.marriage_and_family || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-amber-400/35"><strong class="text-amber-200 block mb-1">👤 जीवनसाथी का रंग-रूप, चेहरा-मोहरा व स्वभाव:</strong>${escapeHtml(ai.spouse_appearance_and_nature || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-cyan-400/35"><strong class="text-cyan-300 block mb-1">💼 करियर किस फील्ड में सबसे सही रहेगा (नौकरी बनाम व्यापार):</strong>${escapeHtml(ai.career_best_fields || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-emerald-400/35"><strong class="text-emerald-300 block mb-1">💰 धन, प्रॉपर्टी, मकान व वाहन योग:</strong>${escapeHtml(ai.wealth_property_vehicle || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-amber-400/25"><strong class="text-amber-300 block mb-1">🕰️ अतीत (Past — बीती महादशाओं का विश्लेषण):</strong>${escapeHtml(ai.past_timeline || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-cyan-200 block mb-1">⚡ वर्तमान स्थिति (Present — सक्रिय दशा व गोचर):</strong>${escapeHtml(ai.present_situation || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-emerald-400/25"><strong class="text-emerald-200 block mb-1">🚀 आगामी भविष्य (Future — अगले 5–10 वर्ष):</strong>${escapeHtml(ai.future_roadmap || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-rose-400/35"><strong class="text-rose-300 block mb-1">⚠️ संपूर्ण दोष व राजयोग जांच (मांगलिक/कालसर्प/पितृ/ग्रहण/साढ़ेसाती):</strong>${escapeHtml(ai.all_doshas_and_yogas_deep || ai.graha_nakshatra_deep || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-purple-400/30"><strong class="text-purple-200 block mb-1">🏥 स्वास्थ्य, माता-पिता व पारिवारिक जीवन:</strong>${escapeHtml(ai.health_and_family_life || '')}</div>
+              <div class="p-3.5 rounded-xl bg-black/45 border border-teal-400/30"><strong class="text-teal-200 block mb-1">🤝 दोस्त, समाज व मित्र-नेटवर्क (3रा व 11वां भाव):</strong>${escapeHtml(ai.friends_social_network || '')}</div>
+              ${ai.planet_by_planet_impact ? `<div class="p-3.5 rounded-xl bg-black/45 border border-amber-400/35 md:col-span-2"><strong class="text-amber-300 block mb-1">🪐 किस ग्रह के कहाँ होने से जीवन में क्या हो रहा है (स्पष्ट कारण):</strong>${escapeHtml(ai.planet_by_planet_impact)}</div>` : ''}
             </div>
             ${rems.length ? `<div class="p-3 rounded-xl bg-amber-950/35 border border-amber-400/35 text-xs text-amber-100 space-y-1"><strong class="text-amber-300 block">🪔 आपकी कुंडली के लिए विशेष व्यक्तिगत उपाय:</strong><ul class="list-disc pl-4 space-y-1">${rems.map((rm) => `<li>${escapeHtml(rm)}</li>`).join('')}</ul></div>` : ''}
           `;
