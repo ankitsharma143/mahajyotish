@@ -10540,336 +10540,7 @@
       // =========================================================================
       // EVENT LISTENERS & INITIALIZATION
       // =========================================================================
-      function init() {
-        state.lang = safeGetStorage(STORAGE_KEYS.LANG, 'hi') === 'en' ? 'en' : 'hi';
-        state.backendUrl = safeGetStorage(STORAGE_KEYS.BACKEND_URL, '');
-        if (!state.backendUrl && window.location.protocol === 'https:' && !/unused\.url|googleusercontent|scf\.usercontent/i.test(window.location.hostname)) {
-          const autoEndpoint = window.location.origin + '/api/analyze-palm';
-          fetch(window.location.origin + '/api/health')
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-              if (d && d.status === 'ok') {
-                state.backendUrl = autoEndpoint;
-                el('backendUrlInput').value = autoEndpoint;
-                applyLanguageAndModeUI();
-              }
-            })
-            .catch(() => {});
-        }
-        el('backendUrlInput').value = state.backendUrl;
-        loadSavedReports();
-
-        // Language switch
-        el('langHiBtn').addEventListener('click', () => {
-          state.lang = 'hi';
-          safeSetStorage(STORAGE_KEYS.LANG, 'hi');
-          applyLanguageAndModeUI();
-        });
-        el('langEnBtn').addEventListener('click', () => {
-          state.lang = 'en';
-          safeSetStorage(STORAGE_KEYS.LANG, 'en');
-          applyLanguageAndModeUI();
-        });
-
-        // Mode bar buttons
-        el('switchToRealBtn').addEventListener('click', () => {
-          state.mode = 'real';
-          goBackToScanner();
-          applyLanguageAndModeUI();
-        });
-        el('switchToDemoBtn').addEventListener('click', launchDemoPreview);
-        el('launchDemoBtn').addEventListener('click', launchDemoPreview);
-
-        // Hand selection
-        el('handRightBtn').addEventListener('click', () => {
-          state.handSide = 'right';
-          applyLanguageAndModeUI();
-        });
-        el('handLeftBtn').addEventListener('click', () => {
-          state.handSide = 'left';
-          applyLanguageAndModeUI();
-        });
-
-        // File upload & Drag/Drop
-        el('palmFileInput').addEventListener('change', (e) => {
-          if (e.target.files && e.target.files[0]) processUploadedFile(e.target.files[0]);
-        });
-        const dz = el('dropZone');
-        dz.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          dz.classList.add('dropzone-active');
-        });
-        dz.addEventListener('dragleave', () => dz.classList.remove('dropzone-active'));
-        dz.addEventListener('drop', (e) => {
-          e.preventDefault();
-          dz.classList.remove('dropzone-active');
-          if (e.dataTransfer.files && e.dataTransfer.files[0]) processUploadedFile(e.dataTransfer.files[0]);
-        });
-        el('clearImageBtn').addEventListener('click', clearSelectedImage);
-
-        // Camera controls
-        el('startCameraBtn').addEventListener('click', startCamera);
-        el('stopCameraBtn').addEventListener('click', stopCamera);
-        el('capturePhotoBtn').addEventListener('click', captureFromCamera);
-        el('flipCameraBtn').addEventListener('click', () => {
-          state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
-          startCamera();
-        });
-        el('mirrorCameraBtn').addEventListener('click', () => {
-          state.mirrorCamera = !state.mirrorCamera;
-          syncCameraGuideUI();
-        });
-        el('toggleGuideBtn').addEventListener('click', () => {
-          state.guideVisible = !state.guideVisible;
-          syncCameraGuideUI();
-        });
-        el('frameScaleRange').addEventListener('input', (e) => {
-          state.frameScale = Number(e.target.value) || 100;
-          syncCameraGuideUI();
-        });
-        el('toggleFullscreenCamBtn').addEventListener('click', () => {
-          state.cameraFullscreen = !state.cameraFullscreen;
-          el('cameraPanel').classList.toggle('camera-fullscreen', state.cameraFullscreen);
-          syncCameraGuideUI();
-        });
-        el('autoCaptureToggleBtn').addEventListener('click', () => {
-          state.autoCaptureEnabled = !state.autoCaptureEnabled;
-          state.autoCaptureReadyTicks = 0;
-          syncCameraGuideUI();
-        });
-        el('rotateImgBtn').addEventListener('click', rotateCapturedImage90);
-        el('enhanceCreaseBtn').addEventListener('click', toggleCreaseClarityBoost);
-        el('resetImgBtn').addEventListener('click', resetOriginalImage);
-        el('speakReportBtn').addEventListener('click', toggleSpeakReport);
-        el('openPdfUpdateBtn').addEventListener('click', openPdfUpdateModal);
-        el('closePdfModalBtn').addEventListener('click', () => el('pdfUpdateModal').classList.add('hidden'));
-        el('applyAndExportPdfBtn').addEventListener('click', () => applyPdfUpdates(true));
-        el('applyPdfOnlyBtn').addEventListener('click', () => applyPdfUpdates(false));
-        el('voiceMicBtn').addEventListener('click', toggleLiveVoiceRecognition);
-        el('sendVoiceQuestionBtn').addEventListener('click', () => {
-          const inp = el('voiceQuestionInput');
-          if (inp && inp.value.trim()) {
-            handleVoiceQuestion(inp.value.trim());
-            inp.value = '';
-          }
-        });
-        el('voiceQuestionInput').addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && e.target.value.trim()) {
-            handleVoiceQuestion(e.target.value.trim());
-            e.target.value = '';
-          }
-        });
-        el('stopVoiceQaAudioBtn').addEventListener('click', () => {
-          if (window.speechSynthesis) window.speechSynthesis.cancel();
-          el('stopVoiceQaAudioBtn').classList.add('hidden');
-          el('voiceStatusPill').textContent = state.lang === 'en' ? 'Ready' : 'तैयार (Ready)';
-        });
-        el('tabPalmBtn').addEventListener('click', () => switchPrimaryTab('palm'));
-        el('tabNumerologyBtn').addEventListener('click', () => switchPrimaryTab('numerology'));
-        el('analyzeNumerologyBtn').addEventListener('click', runNumerologyAnalysis);
-        el('speakNumerologyBtn').addEventListener('click', () => {
-          if (lastNumerologySpeech) speakVoiceAnswer(lastNumerologySpeech);
-        });
-        el('printNumerologyPdfBtn').addEventListener('click', () => generateAndShowPdfModal('numerologyResultWrap', 'MAHAJYOTISH_Numerology'));
-        el('tabKundliBtn').addEventListener('click', () => switchPrimaryTab('kundli'));
-        el('tabPanchangBtn').addEventListener('click', () => switchPrimaryTab('panchang'));
-        el('generateKundliBtn').addEventListener('click', generateJanamKundli);
-        el('speakKundliBtn').addEventListener('click', () => {
-          if (lastKundliSpeech) speakVoiceAnswer(lastKundliSpeech);
-        });
-        el('printKundliPdfBtn').addEventListener('click', () => generateAndShowPdfModal('kundliResultWrap', 'MAHAJYOTISH_Janam_Kundli'));
-        el('panchangYearInput').addEventListener('change', renderPanchangCalendar);
-        el('panchangMonthSelect').addEventListener('change', renderPanchangCalendar);
-        el('panchangCitySelect').addEventListener('change', renderPanchangCalendar);
-        el('panchangPrevMonthBtn').addEventListener('click', () => {
-          let y = panchangState.year, m = panchangState.month - 1;
-          if (m < 0) { m = 11; y = Math.max(1000, y - 1); }
-          el('panchangYearInput').value = String(y);
-          el('panchangMonthSelect').value = String(m);
-          panchangState.selectedDay = 1;
-          renderPanchangCalendar();
-        });
-        el('panchangNextMonthBtn').addEventListener('click', () => {
-          let y = panchangState.year, m = panchangState.month + 1;
-          if (m > 11) { m = 0; y = Math.min(2600, y + 1); }
-          el('panchangYearInput').value = String(y);
-          el('panchangMonthSelect').value = String(m);
-          panchangState.selectedDay = 1;
-          renderPanchangCalendar();
-        });
-        el('tabFaceBtn').addEventListener('click', () => switchPrimaryTab('face'));
-        el('panchangBack100Btn').addEventListener('click', () => {
-          const y = Math.max(1000, (Number(el('panchangYearInput').value) || 2026) - 100);
-          el('panchangYearInput').value = String(y);
-          renderPanchangCalendar();
-        });
-        el('panchangFwd100Btn').addEventListener('click', () => {
-          const y = Math.min(2600, (Number(el('panchangYearInput').value) || 2026) + 100);
-          el('panchangYearInput').value = String(y);
-          renderPanchangCalendar();
-        });
-        el('printPanchangPdfBtn').addEventListener('click', () => generateAndShowPdfModal('panchangView', 'MAHAJYOTISH_Panchang'));
-        el('closePujaModalBtn').addEventListener('click', () => el('pujaVidhiModal').classList.add('hidden'));
-        el('speakPujaVidhiBtn').addEventListener('click', () => {
-          if (lastPujaSpeech) speakVoiceAnswer(lastPujaSpeech);
-        });
-        el('printPujaVidhiBtn').addEventListener('click', () => { el('pujaVidhiModal').classList.add('hidden'); generateAndShowPdfModal('pujaModalBody', 'MAHAJYOTISH_Puja_Vidhi'); });
-        el('faceFileInput').addEventListener('change', (e) => {
-          const file = e.target.files && e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            faceState.dataUrl = ev.target.result;
-            faceState.mime = file.type || 'image/jpeg';
-            el('facePreviewImg').src = faceState.dataUrl;
-            el('facePreviewImg').classList.remove('hidden');
-            el('faceEmptyHint').classList.add('hidden');
-          };
-          reader.readAsDataURL(file);
-        });
-        el('faceStartCamBtn').addEventListener('click', async () => {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showToast('इस ब्राउज़र में लाइव कैमरा उपलब्ध नहीं है, कृपया फोटो अपलोड करें।');
-            return;
-          }
-          try {
-            const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-            faceState.stream = st;
-            el('faceVideo').srcObject = st;
-            el('faceCamBox').classList.remove('hidden');
-          } catch (err) {
-            showToast('कैमरा अनुमति नहीं मिली, कृपया गैलरी से फेस फोटो अपलोड करें।');
-          }
-        });
-        el('faceStopCamBtn').addEventListener('click', () => {
-          if (faceState.stream) {
-            faceState.stream.getTracks().forEach((t) => t.stop());
-            faceState.stream = null;
-          }
-          el('faceVideo').srcObject = null;
-          el('faceCamBox').classList.add('hidden');
-        });
-        el('faceCaptureBtn').addEventListener('click', () => {
-          const v = el('faceVideo');
-          if (!v.videoWidth) return;
-          const c = document.createElement('canvas');
-          c.width = v.videoWidth;
-          c.height = v.videoHeight;
-          const ctx = c.getContext('2d');
-          ctx.translate(c.width, 0);
-          ctx.scale(-1, 1);
-          ctx.drawImage(v, 0, 0);
-          faceState.dataUrl = c.toDataURL('image/jpeg', 0.92);
-          faceState.mime = 'image/jpeg';
-          el('facePreviewImg').src = faceState.dataUrl;
-          el('facePreviewImg').classList.remove('hidden');
-          el('faceEmptyHint').classList.add('hidden');
-          el('faceStopCamBtn').click();
-        });
-        el('analyzeFaceRealBtn').addEventListener('click', analyzeRealFacePhoto);
-        el('launchFaceDemoBtn').addEventListener('click', () => renderFaceReport(buildFaceDemoReport()));
-        el('speakFaceReportBtn').addEventListener('click', () => {
-          if (lastFaceSpeech) speakVoiceAnswer(lastFaceSpeech);
-        });
-        el('printFacePdfBtn').addEventListener('click', () => generateAndShowPdfModal('faceReportWrap', 'MAHAJYOTISH_Face_Reading'));
-        el('panchangTodayBtn').addEventListener('click', () => {
-          const now = new Date();
-          el('panchangYearInput').value = String(now.getFullYear());
-          el('panchangMonthSelect').value = String(now.getMonth());
-          panchangState.selectedDay = now.getDate();
-          renderPanchangCalendar();
-        });
-        el('quickQaChips').querySelectorAll('[data-quick-q]').forEach((chip) => {
-          chip.addEventListener('click', () => {
-            const q = chip.dataset.quickQ;
-            el('voiceQuestionInput').value = q;
-            handleVoiceQuestion(q);
-          });
-        });
-        el('palmZoomRange').addEventListener('input', (e) => {
-          state.palmZoom = Number(e.target.value) || 100;
-          const factor = (state.palmZoom / 100).toFixed(1);
-          el('palmZoomVal').textContent = `${factor}×`;
-          el('palmOverlayCanvas').style.transform = `scale(${state.palmZoom / 100})`;
-        });
-        el('resetZoomBtn').addEventListener('click', () => {
-          state.palmZoom = 100;
-          el('palmZoomRange').value = '100';
-          el('palmZoomVal').textContent = '1.0×';
-          el('palmOverlayCanvas').style.transform = 'scale(1)';
-        });
-
-        // Analyze Real AI
-        el('analyzePalmBtn').addEventListener('click', runRealAiAnalysis);
-
-        // Report controls
-        el('toggleOverlayBtn').addEventListener('click', () => {
-          state.overlayEnabled = !state.overlayEnabled;
-          el('toggleOverlayBtn').textContent = `Overlay: ${state.overlayEnabled ? 'ON' : 'OFF'}`;
-          renderPalmCanvas();
-        });
-        el('downloadPdfBtn').addEventListener('click', exportPdfReport);
-        el('shareReportBtn').addEventListener('click', shareCurrentReport);
-        el('saveReportBtn').addEventListener('click', saveCurrentReport);
-        el('rescanHandBtn').addEventListener('click', goBackToScanner);
-
-        el('expandAllBtn').addEventListener('click', () => {
-          document.querySelectorAll('#reportSectionsContainer .accordion-item').forEach((i) => i.classList.add('open'));
-        });
-        el('collapseAllBtn').addEventListener('click', () => {
-          document.querySelectorAll('#reportSectionsContainer .accordion-item').forEach((i) => i.classList.remove('open'));
-        });
-        el('toggleJsonBtn').addEventListener('click', () => {
-          el('rawJsonPre').classList.toggle('hidden');
-        });
-
-        // Modals
-        el('openSettingsBtn').addEventListener('click', () => {
-          el('backendUrlInput').value = state.backendUrl;
-          el('backendTestResult').classList.add('hidden');
-          el('settingsModal').classList.remove('hidden');
-        });
-        el('closeSettingsBtn').addEventListener('click', () => el('settingsModal').classList.add('hidden'));
-        el('saveBackendUrlBtn').addEventListener('click', () => {
-          const val = el('backendUrlInput').value.trim();
-          if (val && !isValidHttpsUrl(val)) {
-            showToast(state.lang === 'en' ? 'URL must start with https://' : 'URL https:// से शुरू होना चाहिए।');
-            return;
-          }
-          state.backendUrl = val;
-          safeSetStorage(STORAGE_KEYS.BACKEND_URL, val);
-          el('settingsModal').classList.add('hidden');
-          applyLanguageAndModeUI();
-          showToast(state.lang === 'en' ? 'Backend URL saved!' : 'बैकएंड URL सहेजा गया!');
-        });
-        el('clearBackendUrlBtn').addEventListener('click', () => {
-          state.backendUrl = '';
-          el('backendUrlInput').value = '';
-          safeSetStorage(STORAGE_KEYS.BACKEND_URL, '');
-          applyLanguageAndModeUI();
-          showToast(state.lang === 'en' ? 'Backend URL cleared.' : 'बैकएंड URL हटा दिया गया।');
-        });
-        el('testBackendBtn').addEventListener('click', testBackendConnection);
-
-        el('openHistoryBtn').addEventListener('click', () => {
-          renderHistoryModal();
-          el('historyModal').classList.remove('hidden');
-        });
-        el('closeHistoryBtn').addEventListener('click', () => el('historyModal').classList.add('hidden'));
-
-        el('closeAiReqBtn').addEventListener('click', () => el('aiRequiredModal').classList.add('hidden'));
-        el('aiReqOpenSettingsBtn').addEventListener('click', () => {
-          el('aiRequiredModal').classList.add('hidden');
-          el('settingsModal').classList.remove('hidden');
-        });
-        el('aiReqOpenDemoBtn').addEventListener('click', () => {
-          el('aiRequiredModal').classList.add('hidden');
-          launchDemoPreview();
-        });
-
-        // Populate All-India Cities across Kundli, Panchang & Shadi Milan
-        
-      // =========================================================================
+            // =========================================================================
       // REAL GEMINI AI PERSONALIZED KUNDLI, NAME CORRECTION & MARRIAGE AI SKETCH
       // =========================================================================
       async function fetchAiKundliDeepReading(summary) {
@@ -11301,12 +10972,7 @@
         el('marriageStatusMsg').textContent = '';
       }
 
-        populateCityDropdown('kundliCitySelect', '');
-        populateCityDropdown('panchangCitySelect', '');
-        populateCityDropdown('milanBoyCity', '');
-        populateCityDropdown('milanGirlCity', '');
-        populateCityDropdown('babyCitySelect', '');
-        
+
       // =========================================================================
       // ADVANCED SUITE: FAMILY PROFILES, DAILY ALERTS, WHATSAPP, AI TAROT & VASTU MAP
       // =========================================================================
@@ -11536,6 +11202,342 @@
         }
       }
 
+
+      function init() {
+        state.lang = safeGetStorage(STORAGE_KEYS.LANG, 'hi') === 'en' ? 'en' : 'hi';
+        state.backendUrl = safeGetStorage(STORAGE_KEYS.BACKEND_URL, '');
+        if (!state.backendUrl && window.location.protocol === 'https:' && !/unused\.url|googleusercontent|scf\.usercontent/i.test(window.location.hostname)) {
+          const autoEndpoint = window.location.origin + '/api/analyze-palm';
+          fetch(window.location.origin + '/api/health')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (d && d.status === 'ok') {
+                state.backendUrl = autoEndpoint;
+                el('backendUrlInput').value = autoEndpoint;
+                applyLanguageAndModeUI();
+              }
+            })
+            .catch(() => {});
+        }
+        el('backendUrlInput').value = state.backendUrl;
+        loadSavedReports();
+
+        // Language switch
+        el('langHiBtn').addEventListener('click', () => {
+          state.lang = 'hi';
+          safeSetStorage(STORAGE_KEYS.LANG, 'hi');
+          applyLanguageAndModeUI();
+        });
+        el('langEnBtn').addEventListener('click', () => {
+          state.lang = 'en';
+          safeSetStorage(STORAGE_KEYS.LANG, 'en');
+          applyLanguageAndModeUI();
+        });
+
+        // Mode bar buttons
+        el('switchToRealBtn').addEventListener('click', () => {
+          state.mode = 'real';
+          goBackToScanner();
+          applyLanguageAndModeUI();
+        });
+        el('switchToDemoBtn').addEventListener('click', launchDemoPreview);
+        el('launchDemoBtn').addEventListener('click', launchDemoPreview);
+
+        // Hand selection
+        el('handRightBtn').addEventListener('click', () => {
+          state.handSide = 'right';
+          applyLanguageAndModeUI();
+        });
+        el('handLeftBtn').addEventListener('click', () => {
+          state.handSide = 'left';
+          applyLanguageAndModeUI();
+        });
+
+        // File upload & Drag/Drop
+        el('palmFileInput').addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) processUploadedFile(e.target.files[0]);
+        });
+        const dz = el('dropZone');
+        dz.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dz.classList.add('dropzone-active');
+        });
+        dz.addEventListener('dragleave', () => dz.classList.remove('dropzone-active'));
+        dz.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dz.classList.remove('dropzone-active');
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) processUploadedFile(e.dataTransfer.files[0]);
+        });
+        el('clearImageBtn').addEventListener('click', clearSelectedImage);
+
+        // Camera controls
+        el('startCameraBtn').addEventListener('click', startCamera);
+        el('stopCameraBtn').addEventListener('click', stopCamera);
+        el('capturePhotoBtn').addEventListener('click', captureFromCamera);
+        el('flipCameraBtn').addEventListener('click', () => {
+          state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
+          startCamera();
+        });
+        el('mirrorCameraBtn').addEventListener('click', () => {
+          state.mirrorCamera = !state.mirrorCamera;
+          syncCameraGuideUI();
+        });
+        el('toggleGuideBtn').addEventListener('click', () => {
+          state.guideVisible = !state.guideVisible;
+          syncCameraGuideUI();
+        });
+        el('frameScaleRange').addEventListener('input', (e) => {
+          state.frameScale = Number(e.target.value) || 100;
+          syncCameraGuideUI();
+        });
+        el('toggleFullscreenCamBtn').addEventListener('click', () => {
+          state.cameraFullscreen = !state.cameraFullscreen;
+          el('cameraPanel').classList.toggle('camera-fullscreen', state.cameraFullscreen);
+          syncCameraGuideUI();
+        });
+        el('autoCaptureToggleBtn').addEventListener('click', () => {
+          state.autoCaptureEnabled = !state.autoCaptureEnabled;
+          state.autoCaptureReadyTicks = 0;
+          syncCameraGuideUI();
+        });
+        el('rotateImgBtn').addEventListener('click', rotateCapturedImage90);
+        el('enhanceCreaseBtn').addEventListener('click', toggleCreaseClarityBoost);
+        el('resetImgBtn').addEventListener('click', resetOriginalImage);
+        el('speakReportBtn').addEventListener('click', toggleSpeakReport);
+        el('openPdfUpdateBtn').addEventListener('click', openPdfUpdateModal);
+        el('closePdfModalBtn').addEventListener('click', () => el('pdfUpdateModal').classList.add('hidden'));
+        el('applyAndExportPdfBtn').addEventListener('click', () => applyPdfUpdates(true));
+        el('applyPdfOnlyBtn').addEventListener('click', () => applyPdfUpdates(false));
+        el('voiceMicBtn').addEventListener('click', toggleLiveVoiceRecognition);
+        el('sendVoiceQuestionBtn').addEventListener('click', () => {
+          const inp = el('voiceQuestionInput');
+          if (inp && inp.value.trim()) {
+            handleVoiceQuestion(inp.value.trim());
+            inp.value = '';
+          }
+        });
+        el('voiceQuestionInput').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && e.target.value.trim()) {
+            handleVoiceQuestion(e.target.value.trim());
+            e.target.value = '';
+          }
+        });
+        el('stopVoiceQaAudioBtn').addEventListener('click', () => {
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+          el('stopVoiceQaAudioBtn').classList.add('hidden');
+          el('voiceStatusPill').textContent = state.lang === 'en' ? 'Ready' : 'तैयार (Ready)';
+        });
+        el('tabPalmBtn').addEventListener('click', () => switchPrimaryTab('palm'));
+        el('tabNumerologyBtn').addEventListener('click', () => switchPrimaryTab('numerology'));
+        el('analyzeNumerologyBtn').addEventListener('click', runNumerologyAnalysis);
+        el('speakNumerologyBtn').addEventListener('click', () => {
+          if (lastNumerologySpeech) speakVoiceAnswer(lastNumerologySpeech);
+        });
+        el('printNumerologyPdfBtn').addEventListener('click', () => generateAndShowPdfModal('numerologyResultWrap', 'MAHAJYOTISH_Numerology'));
+        el('tabKundliBtn').addEventListener('click', () => switchPrimaryTab('kundli'));
+        el('tabPanchangBtn').addEventListener('click', () => switchPrimaryTab('panchang'));
+        el('generateKundliBtn').addEventListener('click', generateJanamKundli);
+        el('speakKundliBtn').addEventListener('click', () => {
+          if (lastKundliSpeech) speakVoiceAnswer(lastKundliSpeech);
+        });
+        el('printKundliPdfBtn').addEventListener('click', () => generateAndShowPdfModal('kundliResultWrap', 'MAHAJYOTISH_Janam_Kundli'));
+        el('panchangYearInput').addEventListener('change', renderPanchangCalendar);
+        el('panchangMonthSelect').addEventListener('change', renderPanchangCalendar);
+        el('panchangCitySelect').addEventListener('change', renderPanchangCalendar);
+        el('panchangPrevMonthBtn').addEventListener('click', () => {
+          let y = panchangState.year, m = panchangState.month - 1;
+          if (m < 0) { m = 11; y = Math.max(1000, y - 1); }
+          el('panchangYearInput').value = String(y);
+          el('panchangMonthSelect').value = String(m);
+          panchangState.selectedDay = 1;
+          renderPanchangCalendar();
+        });
+        el('panchangNextMonthBtn').addEventListener('click', () => {
+          let y = panchangState.year, m = panchangState.month + 1;
+          if (m > 11) { m = 0; y = Math.min(2600, y + 1); }
+          el('panchangYearInput').value = String(y);
+          el('panchangMonthSelect').value = String(m);
+          panchangState.selectedDay = 1;
+          renderPanchangCalendar();
+        });
+        el('tabFaceBtn').addEventListener('click', () => switchPrimaryTab('face'));
+        el('panchangBack100Btn').addEventListener('click', () => {
+          const y = Math.max(1000, (Number(el('panchangYearInput').value) || 2026) - 100);
+          el('panchangYearInput').value = String(y);
+          renderPanchangCalendar();
+        });
+        el('panchangFwd100Btn').addEventListener('click', () => {
+          const y = Math.min(2600, (Number(el('panchangYearInput').value) || 2026) + 100);
+          el('panchangYearInput').value = String(y);
+          renderPanchangCalendar();
+        });
+        el('printPanchangPdfBtn').addEventListener('click', () => generateAndShowPdfModal('panchangView', 'MAHAJYOTISH_Panchang'));
+        el('closePujaModalBtn').addEventListener('click', () => el('pujaVidhiModal').classList.add('hidden'));
+        el('speakPujaVidhiBtn').addEventListener('click', () => {
+          if (lastPujaSpeech) speakVoiceAnswer(lastPujaSpeech);
+        });
+        el('printPujaVidhiBtn').addEventListener('click', () => { el('pujaVidhiModal').classList.add('hidden'); generateAndShowPdfModal('pujaModalBody', 'MAHAJYOTISH_Puja_Vidhi'); });
+        el('faceFileInput').addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            faceState.dataUrl = ev.target.result;
+            faceState.mime = file.type || 'image/jpeg';
+            el('facePreviewImg').src = faceState.dataUrl;
+            el('facePreviewImg').classList.remove('hidden');
+            el('faceEmptyHint').classList.add('hidden');
+          };
+          reader.readAsDataURL(file);
+        });
+        el('faceStartCamBtn').addEventListener('click', async () => {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast('इस ब्राउज़र में लाइव कैमरा उपलब्ध नहीं है, कृपया फोटो अपलोड करें।');
+            return;
+          }
+          try {
+            const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+            faceState.stream = st;
+            el('faceVideo').srcObject = st;
+            el('faceCamBox').classList.remove('hidden');
+          } catch (err) {
+            showToast('कैमरा अनुमति नहीं मिली, कृपया गैलरी से फेस फोटो अपलोड करें।');
+          }
+        });
+        el('faceStopCamBtn').addEventListener('click', () => {
+          if (faceState.stream) {
+            faceState.stream.getTracks().forEach((t) => t.stop());
+            faceState.stream = null;
+          }
+          el('faceVideo').srcObject = null;
+          el('faceCamBox').classList.add('hidden');
+        });
+        el('faceCaptureBtn').addEventListener('click', () => {
+          const v = el('faceVideo');
+          if (!v.videoWidth) return;
+          const c = document.createElement('canvas');
+          c.width = v.videoWidth;
+          c.height = v.videoHeight;
+          const ctx = c.getContext('2d');
+          ctx.translate(c.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(v, 0, 0);
+          faceState.dataUrl = c.toDataURL('image/jpeg', 0.92);
+          faceState.mime = 'image/jpeg';
+          el('facePreviewImg').src = faceState.dataUrl;
+          el('facePreviewImg').classList.remove('hidden');
+          el('faceEmptyHint').classList.add('hidden');
+          el('faceStopCamBtn').click();
+        });
+        el('analyzeFaceRealBtn').addEventListener('click', analyzeRealFacePhoto);
+        el('launchFaceDemoBtn').addEventListener('click', () => renderFaceReport(buildFaceDemoReport()));
+        el('speakFaceReportBtn').addEventListener('click', () => {
+          if (lastFaceSpeech) speakVoiceAnswer(lastFaceSpeech);
+        });
+        el('printFacePdfBtn').addEventListener('click', () => generateAndShowPdfModal('faceReportWrap', 'MAHAJYOTISH_Face_Reading'));
+        el('panchangTodayBtn').addEventListener('click', () => {
+          const now = new Date();
+          el('panchangYearInput').value = String(now.getFullYear());
+          el('panchangMonthSelect').value = String(now.getMonth());
+          panchangState.selectedDay = now.getDate();
+          renderPanchangCalendar();
+        });
+        el('quickQaChips').querySelectorAll('[data-quick-q]').forEach((chip) => {
+          chip.addEventListener('click', () => {
+            const q = chip.dataset.quickQ;
+            el('voiceQuestionInput').value = q;
+            handleVoiceQuestion(q);
+          });
+        });
+        el('palmZoomRange').addEventListener('input', (e) => {
+          state.palmZoom = Number(e.target.value) || 100;
+          const factor = (state.palmZoom / 100).toFixed(1);
+          el('palmZoomVal').textContent = `${factor}×`;
+          el('palmOverlayCanvas').style.transform = `scale(${state.palmZoom / 100})`;
+        });
+        el('resetZoomBtn').addEventListener('click', () => {
+          state.palmZoom = 100;
+          el('palmZoomRange').value = '100';
+          el('palmZoomVal').textContent = '1.0×';
+          el('palmOverlayCanvas').style.transform = 'scale(1)';
+        });
+
+        // Analyze Real AI
+        el('analyzePalmBtn').addEventListener('click', runRealAiAnalysis);
+
+        // Report controls
+        el('toggleOverlayBtn').addEventListener('click', () => {
+          state.overlayEnabled = !state.overlayEnabled;
+          el('toggleOverlayBtn').textContent = `Overlay: ${state.overlayEnabled ? 'ON' : 'OFF'}`;
+          renderPalmCanvas();
+        });
+        el('downloadPdfBtn').addEventListener('click', exportPdfReport);
+        el('shareReportBtn').addEventListener('click', shareCurrentReport);
+        el('saveReportBtn').addEventListener('click', saveCurrentReport);
+        el('rescanHandBtn').addEventListener('click', goBackToScanner);
+
+        el('expandAllBtn').addEventListener('click', () => {
+          document.querySelectorAll('#reportSectionsContainer .accordion-item').forEach((i) => i.classList.add('open'));
+        });
+        el('collapseAllBtn').addEventListener('click', () => {
+          document.querySelectorAll('#reportSectionsContainer .accordion-item').forEach((i) => i.classList.remove('open'));
+        });
+        el('toggleJsonBtn').addEventListener('click', () => {
+          el('rawJsonPre').classList.toggle('hidden');
+        });
+
+        // Modals
+        el('openSettingsBtn').addEventListener('click', () => {
+          el('backendUrlInput').value = state.backendUrl;
+          el('backendTestResult').classList.add('hidden');
+          el('settingsModal').classList.remove('hidden');
+        });
+        el('closeSettingsBtn').addEventListener('click', () => el('settingsModal').classList.add('hidden'));
+        el('saveBackendUrlBtn').addEventListener('click', () => {
+          const val = el('backendUrlInput').value.trim();
+          if (val && !isValidHttpsUrl(val)) {
+            showToast(state.lang === 'en' ? 'URL must start with https://' : 'URL https:// से शुरू होना चाहिए।');
+            return;
+          }
+          state.backendUrl = val;
+          safeSetStorage(STORAGE_KEYS.BACKEND_URL, val);
+          el('settingsModal').classList.add('hidden');
+          applyLanguageAndModeUI();
+          showToast(state.lang === 'en' ? 'Backend URL saved!' : 'बैकएंड URL सहेजा गया!');
+        });
+        el('clearBackendUrlBtn').addEventListener('click', () => {
+          state.backendUrl = '';
+          el('backendUrlInput').value = '';
+          safeSetStorage(STORAGE_KEYS.BACKEND_URL, '');
+          applyLanguageAndModeUI();
+          showToast(state.lang === 'en' ? 'Backend URL cleared.' : 'बैकएंड URL हटा दिया गया।');
+        });
+        el('testBackendBtn').addEventListener('click', testBackendConnection);
+
+        el('openHistoryBtn').addEventListener('click', () => {
+          renderHistoryModal();
+          el('historyModal').classList.remove('hidden');
+        });
+        el('closeHistoryBtn').addEventListener('click', () => el('historyModal').classList.add('hidden'));
+
+        el('closeAiReqBtn').addEventListener('click', () => el('aiRequiredModal').classList.add('hidden'));
+        el('aiReqOpenSettingsBtn').addEventListener('click', () => {
+          el('aiRequiredModal').classList.add('hidden');
+          el('settingsModal').classList.remove('hidden');
+        });
+        el('aiReqOpenDemoBtn').addEventListener('click', () => {
+          el('aiRequiredModal').classList.add('hidden');
+          launchDemoPreview();
+        });
+
+        // Populate All-India Cities across Kundli, Panchang & Shadi Milan
+        
+        populateCityDropdown('kundliCitySelect', '');
+        populateCityDropdown('panchangCitySelect', '');
+        populateCityDropdown('milanBoyCity', '');
+        populateCityDropdown('milanGirlCity', '');
+        populateCityDropdown('babyCitySelect', '');
+        
         populateCityDropdown('marriageCitySelect', '');
         attachUniversalPlaceSearch('panchangCitySearch', 'panchangWebPlaceBtn', 'panchangCitySelect');
         attachUniversalPlaceSearch('milanBoyCitySearch', 'milanBoyWebPlaceBtn', 'milanBoyCity');
