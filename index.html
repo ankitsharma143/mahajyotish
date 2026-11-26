@@ -10309,15 +10309,17 @@
               const targetRect = targetEl.getBoundingClientRect();
               const domH = Math.max(1, targetRect.height);
 
-              // Collect exact pixel-accurate atomic block ranges BEFORE capture
+              // Collect exact pixel-accurate atomic block ranges BEFORE capture (whole cards first, then rows/headings)
               const rawBlocks = [];
-              targetEl.querySelectorAll('.gold-card, .gold-card-subtle, .accordion-item, tr, canvas, svg, li, .grid > div').forEach((node) => {
+              targetEl.querySelectorAll('.gold-card, .gold-card-subtle, .accordion-item, tr, h3, h4, li, .grid > div').forEach((node) => {
                 if (node.classList.contains('hidden')) return;
                 const nr = node.getBoundingClientRect();
                 if (nr.height < 12 || nr.width < 20) return;
                 rawBlocks.push({
                   topFrac: (nr.top - targetRect.top) / domH,
-                  botFrac: (nr.bottom - targetRect.top) / domH
+                  botFrac: (nr.bottom - targetRect.top) / domH,
+                  isCard: node.classList.contains('gold-card') || node.classList.contains('gold-card-subtle') || node.classList.contains('accordion-item'),
+                  isHeading: node.tagName === 'H3' || node.tagName === 'H4'
                 });
               });
 
@@ -10327,16 +10329,12 @@
                 useCORS: true,
                 logging: false,
                 onclone: (doc) => {
+                  // Only neutralize oklch colors without changing any element height/lineHeight (keeps 0px drift!)
                   doc.querySelectorAll('*').forEach((elNode) => {
                     const cs = doc.defaultView.getComputedStyle(elNode);
                     if (cs && cs.backgroundImage && cs.backgroundImage.includes('oklch')) elNode.style.backgroundImage = 'none';
                     if (cs && cs.color && cs.color.includes('oklch')) elNode.style.color = '#f5f1ff';
                     if (cs && cs.backgroundColor && cs.backgroundColor.includes('oklch')) elNode.style.backgroundColor = '#150e28';
-                  });
-                  doc.querySelectorAll('.accordion-toggle, .accordion-toggle span, h1, h2, h3, h4').forEach((n) => {
-                    n.style.overflow = 'visible';
-                    n.style.whiteSpace = 'normal';
-                    n.style.lineHeight = '1.55';
                   });
                 }
               });
@@ -10345,12 +10343,20 @@
                 const imgW = fullCanvas.width;
                 const imgH = fullCanvas.height;
                 const pxPerMm = imgW / usableW;
-                const firstPageSlicePx = Math.floor((pageH - 15 - 9) * pxPerMm);
-                const normalPageSlicePx = Math.floor((pageH - 8 - 9) * pxPerMm);
+                const firstPageSlicePx = Math.floor((pageH - 15 - 10) * pxPerMm);
+                const normalPageSlicePx = Math.floor((pageH - 8 - 10) * pxPerMm);
 
                 const atomicPx = rawBlocks
-                  .map((b) => ({ top: Math.floor(b.topFrac * imgH), bottom: Math.ceil(b.botFrac * imgH) }))
-                  .filter((b) => (b.bottom - b.top) > 12 && (b.bottom - b.top) <= normalPageSlicePx * 0.85 && b.top >= 0 && b.bottom <= imgH);
+                  .map((b) => ({
+                    top: Math.floor(b.topFrac * imgH),
+                    bottom: Math.ceil(b.botFrac * imgH),
+                    isCard: b.isCard,
+                    isHeading: b.isHeading
+                  }))
+                  .filter((b) => {
+                    const h = b.bottom - b.top;
+                    return h > 12 && h <= normalPageSlicePx * 0.96 && b.top >= 0 && b.bottom <= imgH;
+                  });
 
                 let offsetY = 0;
                 let pageIndex = 0;
@@ -10358,16 +10364,19 @@
                   const maxSlice = pageIndex === 0 ? firstPageSlicePx : normalPageSlicePx;
                   let cutY = Math.min(offsetY + maxSlice, imgH);
                   if (cutY < imgH) {
-                    for (let pass = 0; pass < 4; pass++) {
+                    for (let pass = 0; pass < 6; pass++) {
                       let bestTop = cutY;
                       for (let i = 0; i < atomicPx.length; i++) {
                         const b = atomicPx[i];
-                        if (b.top < cutY && b.bottom > cutY && b.top > offsetY + 80) {
+                        // Never cut inside a card/row, and never leave a heading orphaned near the bottom of a page
+                        const hitsCut = b.top < cutY && b.bottom > cutY;
+                        const orphanHead = b.isHeading && b.top > offsetY + 80 && (cutY - b.top) < 140;
+                        if ((hitsCut || orphanHead) && b.top > offsetY + 60) {
                           if (b.top < bestTop) bestTop = b.top;
                         }
                       }
                       if (bestTop < cutY) {
-                        cutY = Math.max(offsetY + 80, bestTop - 4);
+                        cutY = Math.max(offsetY + 60, bestTop - 8);
                       } else {
                         break;
                       }
