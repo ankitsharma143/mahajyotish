@@ -203,12 +203,14 @@ export default {
         const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, सहज, प्रीमियम पारंपरिक हस्तरेखा हिंदी)';
         const handLabel = handSide === 'left' ? 'Left Hand' : 'Right Hand';
 
-        const promptText = `You are an Expert Gemini AI Vision Engineer and Traditional Palmistry Expert.
-Analyze the ACTUAL uploaded palm image (${handLabel}). Write all narrative text in ${targetLang}.
+        const promptText = `You are a Senior Traditional Indian Samudrika Shastra (Hastrekha) Master & Gemini Vision Analyst.
+Analyze the ACTUAL uploaded palm image (${handLabel}) in deep, crystal-clear, easy-to-understand ${targetLang} so a layperson understands every detail uniquely for THIS specific palm (NEVER give short 1-line generic boilerplate).
 STRICT RULES:
-- Carefully inspect the full palm at high detail and analyze ALL 7 lines (life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines). Even if secondary lines are faint or thin, describe what is observable and mark visibility as "low" or "medium" rather than "not_visible" unless completely cropped or blurred out.
+- Inspect the palm shape, fingers, thumb, all major mounts (गुरु, शनि, सूर्य, बुध, शुक्र, चंद्र, मंगल पर्वत) and ALL 7 lines (life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines).
+- For EVERY major narrative field (overall_summary, personality, life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines, career, business, money, love, marriage, family, personalized_advice), write 3 to 5 clear, warm, specific sentences explaining what is visually observed on THIS palm (depth, curve, length, mount prominence) and what it traditionally signifies in easy everyday Hindi/English.
+- Under "relationship_lines", "marriage", and "family": examine the Mercury mount (little finger edge) and Venus mount for traditional symbolic signs of relationship harmony, emotional depth, partnership style, and family/parenthood warmth. NEVER claim guaranteed exact numbers of children, child gender, exact number of marriages, death, or serious illness — clearly keep it traditional symbolic guidance.
+- Even if secondary lines are faint or thin, describe what is observable and set visibility to "low" or "medium" rather than "not_visible" unless completely cropped or blurred out.
 - Provide normalized [0,1000] polyline coordinates in line_coordinates (life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines) wherever visually traceable.
-- Never predict death, serious illness, or exact marriage dates.
 Return ONLY valid JSON with all keys: ${REQUIRED_FIELDS.join(', ')}, line_coordinates, and life_pillar_scores.
 Ensure "detected_features" is an object containing: hand_analyzed, palm_type, finger_proportions, thumb_characteristics, and "line_visibility" (an object with keys life_line, head_line, heart_line, fate_line, sun_line, mercury_line, relationship_lines, each set to "high", "medium", "low", or "not_visible").`;
 
@@ -220,7 +222,7 @@ Ensure "detected_features" is an object containing: hand_analyzed, palm_type, fi
               { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
             ]
           }],
-          generationConfig: { temperature: 0.45, topP: 0.9, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+          generationConfig: { temperature: 0.65, topP: 0.92, maxOutputTokens: 6144, responseMimeType: 'application/json' }
         });
 
         if (!result.ok) {
