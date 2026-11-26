@@ -369,6 +369,15 @@ Return ONLY valid JSON with keys:
 - future_card_reading (3 sentences on upcoming outcome & timeline)
 - final_guidance (2-3 sentences of clear, empowering practical advice)
 - lucky_affirmation (1 uplifting Hindi/English mantra or affirmation)`;
+        } else if (mode === 'love') {
+          prompt = `You are a Master Vedic Numerologist & Relationship Compatibility Expert. Analyze this couple's exact name & face compatibility data and explain clearly in ${targetLang} WHY they received this exact percentage (NEVER generic boilerplate; reference their exact names, Chaldean numbers, ruling planets, shared letters, Soul Urge vowels & Name-Rashi elements):
+${JSON.stringify(data).slice(0, 4500)}
+Return ONLY valid JSON with keys:
+- why_this_score (3-4 sentences clearly explaining what specific name/planet/letter factors produced their exact percentage)
+- deepest_strength (3 sentences on their strongest emotional & mental bond)
+- potential_friction (2-3 sentences on where misunderstandings can happen and how to avoid them)
+- marriage_future (3 sentences on long-term stability & marriage potential)
+- couple_tips (array of 3 specific practical tips/remedies for this exact pair)`;
         } else {
           return jsonRes({ error: 'INVALID_MODE', message: 'Unsupported mode.' }, 400);
         }

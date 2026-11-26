@@ -7,6 +7,16 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>MAHAJYOTISH – By Mahaindustries</title>
+  <meta name="description" content="MAHAJYOTISH – संपूर्ण वैदिक जन्म कुंडली (D1, D9, D10), रियल AI हस्तरेखा स्कैनर, 36-गुण मिलान, 1600 वर्ष हिंदू पंचांग, अंकशास्त्र लो-शू ग्रिड, AI टैरो एवं वास्तु नक्शा स्कैनर।" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="MAHAJYOTISH – संपूर्ण वैदिक कुंडली, AI हस्तरेखा व पंचांग" />
+  <meta property="og:description" content="जन्म कुंडली, रियल AI हस्तरेखा स्कैनर, विवाह भविष्यवाणी व AI स्केच, 36-गुण मिलान, 1600 वर्ष पंचांग, अंकशास्त्र लो-शू ग्रिड व वास्तु स्कैनर — By Mahaindustries." />
+  <meta property="og:url" content="https://mahajyotish.ankitbhartiya143.workers.dev/" />
+  <meta property="og:image" content="https://mahajyotish.ankitbhartiya143.workers.dev/icon-512.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MAHAJYOTISH – By Mahaindustries" />
+  <meta name="twitter:description" content="संपूर्ण वैदिक कुंडली, रियल AI हस्तरेखा स्कैनर, पंचांग, अंकशास्त्र एवं वास्तु ऐप।" />
+  <meta name="twitter:image" content="https://mahajyotish.ankitbhartiya143.workers.dev/icon-512.png" />
   <meta name="theme-color" content="#0e081c" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -570,7 +580,12 @@
             </div>
             <select id="kundliCitySelect" class="w-full rounded-xl px-3 py-2 bg-black/70 border border-amber-400/35 text-purple-50 text-xs"></select>
           </div>
-          <div class="lg:col-span-2 flex items-end">
+          <div class="lg:col-span-2 flex flex-col justify-end gap-1.5">
+            <select id="kundliAyanamshaSelect" class="w-full rounded-xl px-2 py-1.5 bg-black/70 border border-amber-400/35 text-amber-200 text-[11px]" title="अयनांश चुनें">
+              <option value="lahiri">अयनांश: True Lahiri</option>
+              <option value="kp">अयनांश: KP (कृष्णमूर्ति)</option>
+              <option value="raman">अयनांश: BV Raman</option>
+            </select>
             <button id="generateKundliBtn" type="button" class="btn-gold w-full py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold">🪐 कुंडली बनाएं</button>
           </div>
         </div>
@@ -2108,7 +2123,32 @@
         <a href="https://wa.me/917500343487" target="_blank" rel="noopener noreferrer" class="btn-outline-gold px-4 py-2 rounded-xl font-bold">💬 WhatsApp संपर्क</a>
       </div>
     </div>
+      <div class="mt-4 pt-3 border-t border-amber-400/20 flex flex-wrap items-center justify-center gap-3 text-[11px] text-purple-200/85">
+      <button id="openPrivacyModalBtn" type="button" class="underline hover:text-amber-200">🔒 प्राइवेसी पॉलिसी (Privacy Policy)</button>
+      <span>•</span>
+      <button id="openTermsModalBtn" type="button" class="underline hover:text-amber-200">📜 नियम व शर्तें (Terms &amp; Disclaimer)</button>
+      <span>•</span>
+      <a href="https://wa.me/917500343487" target="_blank" rel="noopener" class="underline hover:text-emerald-300">💬 सहायता: 7500343487</a>
+    </div>
   </footer>
+
+  <!-- ==================== MODAL: PRIVACY POLICY & TERMS ==================== -->
+  <div id="legalPrivacyModal" class="no-print hidden fixed inset-0 z-[75] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="gold-card rounded-2xl max-w-lg w-full p-5 space-y-3 border border-amber-400/40 my-auto text-xs text-purple-100/90 leading-relaxed">
+      <div class="flex items-center justify-between border-b border-amber-400/25 pb-2.5">
+        <h3 id="legalModalTitle" class="mystic-title text-base sm:text-lg font-bold text-amber-200">🔒 प्राइवेसी पॉलिसी एवं नियम (MAHAJYOTISH)</h3>
+        <button id="closeLegalModalBtn" type="button" class="text-purple-200 hover:text-amber-200 text-lg font-bold px-2">✕</button>
+      </div>
+      <div class="space-y-2.5 max-h-[65vh] overflow-y-auto pr-1">
+        <p><strong class="text-amber-200">1. डेटा और फोटो की गोपनीयता:</strong> आपके द्वारा सेव की गई फैमिली प्रोफाइल, रिपोर्ट इतिहास और सेटिंग्स केवल आपके अपने डिवाइस के ब्राउज़र (<code>localStorage</code>) में सुरक्षित रहती हैं। हम आपकी हथेली, चेहरे या घर के नक्शे की कोई भी फोटो अपने सर्वर पर स्थायी रूप से स्टोर नहीं करते।</p>
+        <p><strong class="text-amber-200">2. कैमरा व माइक्रोफोन अनुमति:</strong> कैमरा केवल लाइव हथेली/चेहरा स्कैन और वास्तु कम्पास के लिए, और माइक्रोफोन केवल वॉइस प्रश्न पूछने के लिए उपयोग होता है।</p>
+        <p><strong class="text-amber-200">3. AI प्रोसेसिंग:</strong> स्कैन व व्यक्तिगत ज्योतिष विश्लेषण के समय फोटो/विवरण सुरक्षित HTTPS कनेक्शन से AI विश्लेषण के लिए भेजे जाते हैं और रिपोर्ट बनते ही डिलीट हो जाते हैं।</p>
+        <p><strong class="text-amber-200">4. पारंपरिक मार्गदर्शन अस्वीकरण (Disclaimer):</strong> MAHAJYOTISH में उपलब्ध कुंडली, हस्तरेखा, अंकशास्त्र, टैरो, वास्तु और विवाह फलादेश पारंपरिक भारतीय ज्योतिष व सांस्कृतिक ज्ञान पर आधारित मार्गदर्शन एवं आत्म-चिंतन के लिए हैं। ये किसी चिकित्सा, कानूनी या वित्तीय सलाह का विकल्प नहीं हैं।</p>
+        <p><strong class="text-amber-200">5. संपर्क व डेवलपर:</strong> Mahaindustries (Pro. Ankit Sharma) • मोबाइल / WhatsApp: <strong>7500343487</strong>।</p>
+      </div>
+      <button id="okLegalModalBtn" type="button" class="btn-gold w-full py-2.5 rounded-xl text-xs font-bold">✓ समझ गया / बंद करें</button>
+    </div>
+  </div>
 
   <!-- ==================== MODAL: BACKEND SETTINGS ==================== -->
   <div id="settingsModal" class="no-print hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
@@ -5181,12 +5221,79 @@
         return { dPsi, eps: eps0 + dEps };
       }
 
-      function getLahiriAyanamsha(jd) {
-        // True Chitra Paksha (Lahiri) Ayanamsha matching Indian Astronomical Ephemeris / AstroSage / Drik Panchang
+      function getDeltaTDays(year) {
+        // Espenak & Meeus Delta-T (TT - UT in seconds) converted to days for 1900-2100 global accuracy
+        let dtSec = 69.0;
+        if (year >= 2005 && year <= 2050) {
+          const t = year - 2000;
+          dtSec = 62.92 + 0.32217 * t + 0.005589 * t * t;
+        } else if (year >= 1986 && year < 2005) {
+          const t = year - 2000;
+          dtSec = 63.86 + 0.3345 * t - 0.060374 * t * t + 0.0017275 * t * t * t;
+        } else if (year >= 1961 && year < 1986) {
+          const t = year - 1975;
+          dtSec = 45.45 + 1.067 * t - (t * t) / 260.0 - (t * t * t) / 718.0;
+        } else if (year >= 1941 && year < 1961) {
+          const t = year - 1950;
+          dtSec = 29.07 + 0.407 * t - (t * t) / 233.0 + (t * t * t) / 2547.0;
+        } else if (year >= 1920 && year < 1941) {
+          const t = year - 1920;
+          dtSec = 21.20 + 0.84493 * t - 0.076100 * t * t + 0.0020936 * t * t * t;
+        } else if (year > 2050) {
+          const u = (year - 1820) / 100.0;
+          dtSec = -20 + 32 * u * u - 0.5628 * (2150 - year);
+        } else {
+          const t = year - 1900;
+          dtSec = -2.79 + 1.494119 * t - 0.0598939 * t * t + 0.0061966 * t * t * t;
+        }
+        return dtSec / 86400.0;
+      }
+
+      function resolveExactUtcOffsetHours(y, m, d, hh, mm, fallbackTz, ianaTz) {
+        const fb = Number.isFinite(fallbackTz) ? fallbackTz : 5.5;
+        if (!ianaTz || typeof Intl === 'undefined' || !Intl.DateTimeFormat) return fb;
+        try {
+          const guessUtcMs = Date.UTC(y, m - 1, d, hh, mm, 0) - fb * 3600000;
+          const fmt = new Intl.DateTimeFormat('en-US', {
+            timeZone: ianaTz,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hourCycle: 'h23'
+          });
+          const getPartsMs = (ms) => {
+            const p = {};
+            fmt.formatToParts(new Date(ms)).forEach((x) => { if (x.type !== 'literal') p[x.type] = Number(x.value); });
+            return Date.UTC(p.year, p.month - 1, p.day, p.hour === 24 ? 0 : p.hour, p.minute, p.second);
+          };
+          const localAsUtc = getPartsMs(guessUtcMs);
+          const offsetHours = (localAsUtc - guessUtcMs) / 3600000;
+          return Number.isFinite(offsetHours) && Math.abs(offsetHours) <= 14 ? offsetHours : fb;
+        } catch (_) {
+          return fb;
+        }
+      }
+
+      function parsePlaceOptionValue(valStr, y, m, d, hh, mm) {
+        const parts = String(valStr || '28.6139,77.2090,5.5,Asia/Kolkata').split(',');
+        const lat = Number(parts[0]) || 28.6139;
+        const lon = Number(parts[1]) || 77.2090;
+        const rawTz = Number(parts[2]);
+        const ianaTz = (parts[3] || '').trim() || (Math.abs(rawTz - 5.5) < 0.01 ? 'Asia/Kolkata' : '');
+        const tz = resolveExactUtcOffsetHours(y, m, d, hh, mm, Number.isFinite(rawTz) ? rawTz : 5.5, ianaTz);
+        return { lat, lon, tz, ianaTz };
+      }
+
+      function getLahiriAyanamsha(jd, mode) {
+        const ayMode = mode || (el('kundliAyanamshaSelect')?.value) || 'lahiri';
         const T = (jd - 2451545.0) / 36525.0;
-        const meanLahiri = 23.857092 + 1.396971278 * T + 0.0003086 * T * T;
         const { dPsi } = getNutationAndObliquity(jd);
-        return meanLahiri + dPsi;
+        if (ayMode === 'kp') {
+          return 23.7575 + 1.396971278 * T + 0.0003086 * T * T + dPsi;
+        }
+        if (ayMode === 'raman') {
+          return 22.4167 + 1.396971278 * T + 0.0003086 * T * T;
+        }
+        return 23.857092 + 1.396971278 * T + 0.0003086 * T * T + dPsi;
       }
 
       function getSunTropical(jd) {
@@ -5797,7 +5904,8 @@
                 display: [r.name, r.admin2, r.admin1, r.country].filter(Boolean).join(', ').slice(0, 88),
                 lat: Number(r.latitude).toFixed(4),
                 lon: Number(r.longitude).toFixed(4),
-                tz: r.country_code === 'IN' ? 5.5 : Math.round((Number(r.longitude || 0) / 15) * 2) / 2
+                tz: r.country_code === 'IN' ? 5.5 : Math.round((Number(r.longitude || 0) / 15) * 2) / 2,
+                ianaTz: r.timezone || (r.country_code === 'IN' ? 'Asia/Kolkata' : '')
               }));
             }
           } catch (_) {}
@@ -5830,7 +5938,7 @@
         const sel = el(selectId);
         if (sel) {
           sel.innerHTML = found
-            .map((r) => `<option value="${r.lat},${r.lon},${r.tz || 5.5}">📍 ${escapeHtml(r.display)}</option>`)
+            .map((r) => `<option value="${r.lat},${r.lon},${r.tz ?? 5.5},${r.ianaTz || ''}">📍 ${escapeHtml(r.display)}${r.ianaTz ? ' (' + escapeHtml(r.ianaTz) + ')' : ''}</option>`)
             .join('');
           sel.selectedIndex = 0;
           sel.dispatchEvent(new Event('change'));
@@ -5865,8 +5973,6 @@
         const nameVal = (el('kundliNameInput').value || '').trim() || 'जातक';
         const dobVal = (el('kundliDobInput').value || '').trim();
         const timeVal = (el('kundliTimeInput').value || '08:30').trim();
-        const [lat, lon, tz] = el('kundliCitySelect').value.split(',').map(Number);
-
         if (!dobVal) {
           showToast('कृपया जन्मतिथि (Date of Birth) चुनें।');
           return;
@@ -5874,11 +5980,13 @@
 
         const [y, m, d] = dobVal.split('-').map(Number);
         const [hh, mm] = timeVal.split(':').map(Number);
+        const { lat, lon, tz, ianaTz } = parsePlaceOptionValue(el('kundliCitySelect').value, y, m, d, hh, mm);
         const utHours = hh + mm / 60 - tz;
-        const jd = toJulianDay(y, m, d, utHours);
+        const jdUT = toJulianDay(y, m, d, utHours);
+        const jd = jdUT + getDeltaTDays(y);
         const ayan = getLahiriAyanamsha(jd);
 
-        const lagnaLon = getLagnaSidereal(jd, lat, lon);
+        const lagnaLon = getLagnaSidereal(jdUT, lat, lon);
         const lagnaIdx = Math.floor(lagnaLon / 30);
 
         const isRetro = (pName) => {
@@ -7692,21 +7800,80 @@
         const p1 = PLANET_INFO[c1.root] || PLANET_INFO[1];
         const p2 = PLANET_INFO[c2.root] || PLANET_INFO[1];
 
-        let score = 68;
-        if (c1.root === c2.root) score += 16;
-        else if (p1.friends.includes(c2.root) && p2.friends.includes(c1.root)) score += 22;
-        else if (p1.friends.includes(c2.root) || p2.friends.includes(c1.root)) score += 12;
-        else if (p1.avoid.includes(c2.root) || p2.avoid.includes(c1.root)) score -= 12;
+        const letterBreakdown = (cleanStr) =>
+          cleanStr.split('').map((ch) => `${ch}(${CHALDEAN_MAP[ch] || 0})`).join(' + ');
 
-        // Shared vowel harmony
-        const v1 = (n1.toLowerCase().match(/[aeiou]/g) || []).length;
-        const v2 = (n2.toLowerCase().match(/[aeiou]/g) || []).length;
-        score += Math.max(0, 8 - Math.abs(v1 - v2) * 2);
+        // Factor 1: Planetary Friendship (Max 30)
+        let planetPts = 18;
+        let planetRel = 'सम संबंध (Neutral Harmony)';
+        if (c1.root === c2.root) {
+          planetPts = 27;
+          planetRel = `समान स्वामी ग्रह (${p1.hi}) — गहरी मानसिक समानता`;
+        } else if (p1.friends.includes(c2.root) && p2.friends.includes(c1.root)) {
+          planetPts = 30;
+          planetRel = `परम मित्र ग्रह (${p1.hi} 🤝 ${p2.hi}) — अत्यंत शुभ तालमेल`;
+        } else if (p1.friends.includes(c2.root) || p2.friends.includes(c1.root)) {
+          planetPts = 23;
+          planetRel = `मित्रवत ग्रह (${p1.hi} व ${p2.hi}) — सहयोगी संबंध`;
+        } else if (p1.avoid.includes(c2.root) || p2.avoid.includes(c1.root)) {
+          planetPts = 11;
+          planetRel = `विपरीत ऊर्जा (${p1.hi} ⚡ ${p2.hi}) — धैर्य व समझ आवश्यक`;
+        }
 
+        // Factor 2: Soul Urge / Vowel Harmony (Max 20)
+        const vowels1 = c1.clean.replace(/[^AEIOU]/g, '');
+        const vowels2 = c2.clean.replace(/[^AEIOU]/g, '');
+        const vRoot1 = vowels1 ? computeChaldean(vowels1).root : c1.root;
+        const vRoot2 = vowels2 ? computeChaldean(vowels2).root : c2.root;
+        const vp1 = PLANET_INFO[vRoot1] || PLANET_INFO[1];
+        let vowelPts = vRoot1 === vRoot2 ? 19 : vp1.friends.includes(vRoot2) ? 17 : vp1.avoid.includes(vRoot2) ? 9 : 13;
+
+        // Factor 3: Outer Personality / Consonant Harmony (Max 15)
+        const cons1 = c1.clean.replace(/[AEIOU]/g, '');
+        const cons2 = c2.clean.replace(/[AEIOU]/g, '');
+        const consR1 = cons1 ? computeChaldean(cons1).root : c1.root;
+        const consR2 = cons2 ? computeChaldean(cons2).root : c2.root;
+        const cp1 = PLANET_INFO[consR1] || PLANET_INFO[1];
+        let consPts = consR1 === consR2 ? 14 : cp1.friends.includes(consR2) ? 13 : cp1.avoid.includes(consR2) ? 7 : 10;
+
+        // Factor 4: Shared Letters & Sound Vibration (Max 15)
+        const set1 = new Set(c1.clean.split(''));
+        const set2 = new Set(c2.clean.split(''));
+        const sharedLetters = [...set1].filter((ch) => set2.has(ch));
+        const unionSize = Math.max(1, new Set([...set1, ...set2]).size);
+        const overlapRatio = sharedLetters.length / unionSize;
+        const sharedPts = Math.min(15, Math.max(6, Math.round(7 + overlapRatio * 12)));
+
+        // Factor 5: Name-Rashi & Element (Tatva) Match (Max 20)
+        const LETTER_RASHI = {
+          A:0,L:0,E:0, B:1,V:1,U:1,W:1, K:2,C:2,Q:2, H:3,D:3, M:4,T:4, P:5, R:6, N:7,Y:7, F:8, J:9, G:10,S:10, Z:11,I:11,O:11
+        };
+        const r1 = LETTER_RASHI[c1.clean[0]] ?? (c1.root % 12);
+        const r2 = LETTER_RASHI[c2.clean[0]] ?? (c2.root % 12);
+        const ELEM_NAMES = ['अग्नि (Fire)', 'पृथ्वी (Earth)', 'वायु (Air)', 'जल (Water)'];
+        const e1 = r1 % 4, e2 = r2 % 4;
+        let elemPts = 13;
+        let elemRel = 'मध्यम तत्व संतुलन';
+        if (e1 === e2) { elemPts = 19; elemRel = `समान तत्व (${ELEM_NAMES[e1]}) — स्वाभाविक समझ`; }
+        else if ((e1 === 0 && e2 === 2) || (e1 === 2 && e2 === 0) || (e1 === 1 && e2 === 3) || (e1 === 3 && e2 === 1)) {
+          elemPts = 18; elemRel = `पूरक मित्र तत्व (${ELEM_NAMES[e1]} + ${ELEM_NAMES[e2]})`;
+        } else if ((e1 === 0 && e2 === 3) || (e1 === 3 && e2 === 0)) {
+          elemPts = 10; elemRel = `अग्नि-जल आकर्षण (तीव्र भावनाएं, संतुलन ज़रूरी)`;
+        }
+
+        const totalScore = Math.max(42, Math.min(98, planetPts + vowelPts + consPts + sharedPts + elemPts));
         return {
-          score: Math.max(42, Math.min(98, Math.round(score))),
-          c1,
-          c2
+          score: totalScore,
+          c1, c2, p1, p2,
+          b1: letterBreakdown(c1.clean),
+          b2: letterBreakdown(c2.clean),
+          planetPts, planetRel,
+          vowelPts, vRoot1, vRoot2, vowels1, vowels2,
+          consPts, consR1, consR2,
+          sharedPts, sharedLetters,
+          elemPts, elemRel,
+          rashi1: RASHIS_HI[r1], rashi2: RASHIS_HI[r2],
+          elem1: ELEM_NAMES[e1], elem2: ELEM_NAMES[e2]
         };
       }
 
@@ -7734,6 +7901,7 @@
 
         let nameRes = null;
         let faceScore = null;
+        let faceMeta = null;
 
         if (mode === 'both' || mode === 'name') {
           nameRes = computeNameLoveScore(n1, n2);
@@ -7744,17 +7912,18 @@
           loveState.face1Metrics = m1;
           loveState.face2Metrics = m2;
           faceScore = computeFaceLoveScore(m1, m2);
+          faceMeta = { sym1: Math.round(m1.symmetry), sym2: Math.round(m2.symmetry), faceScore };
         }
 
         let finalPct = 75;
-        if (mode === 'both') finalPct = Math.round(nameRes.score * 0.55 + faceScore * 0.45);
+        if (mode === 'both') finalPct = Math.round(nameRes.score * 0.6 + faceScore * 0.4);
         else if (mode === 'name') finalPct = nameRes.score;
         else finalPct = faceScore;
 
-        const emo = Math.min(99, Math.max(45, finalPct + 3));
-        const comm = Math.min(99, Math.max(45, finalPct - 2));
-        const stab = Math.min(99, Math.max(45, finalPct + 1));
-        const chem = Math.min(99, Math.max(45, finalPct + 4));
+        const emo = nameRes ? Math.min(99, Math.round((nameRes.vowelPts / 20) * 100)) : Math.min(99, finalPct + 2);
+        const comm = nameRes ? Math.min(99, Math.round(((nameRes.sharedPts + nameRes.consPts) / 30) * 100)) : Math.min(99, finalPct - 1);
+        const stab = nameRes ? Math.min(99, Math.round((nameRes.planetPts / 30) * 100)) : Math.min(99, finalPct + 1);
+        const chem = nameRes ? Math.min(99, Math.round((nameRes.elemPts / 20) * 100)) : Math.min(99, finalPct + 3);
 
         const title =
           finalPct >= 86 ? 'अटूट प्रेम व गहरी आत्मीयता (Soulmate Harmony)'
@@ -7762,7 +7931,7 @@
           : finalPct >= 62 ? 'अच्छा तालमेल — खुले संवाद से और मजबूत होगा'
           : 'चुनौतीपूर्ण तालमेल — धैर्य व आपसी समझ आवश्यक';
 
-        const modeLabel = mode === 'both' ? 'नाम + चेहरा संयुक्त विश्लेषण' : mode === 'name' ? 'कैल्डियन नाम अंकशास्त्र विश्लेषण' : 'सामुद्रिक चेहरा आकर्षण व समरूपता विश्लेषण';
+        const modeLabel = mode === 'both' ? 'नाम + चेहरा संयुक्त विश्लेषण' : mode === 'name' ? '6-फैक्टर वैदिक व कैल्डियन नाम विश्लेषण' : 'सामुद्रिक चेहरा समरूपता विश्लेषण';
         const pairTitle = mode === 'face' ? 'Partner 1 ❤️ Partner 2 (Face Match)' : `${n1} ❤️ ${n2}`;
 
         el('loveResultWrap').classList.remove('hidden');
@@ -7770,54 +7939,109 @@
 
         el('loveScoreCard').innerHTML = `
           <div class="md:col-span-4 text-center space-y-2">
-            <div class="w-32 h-32 mx-auto rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500/25 via-purple-900/50 to-black flex flex-col items-center justify-center shadow-[0_0_28px_rgba(236,72,153,0.4)]">
-              <div class="text-3xl font-extrabold text-amber-200">${finalPct}%</div>
-              <div class="text-[10px] text-pink-200 uppercase font-bold">Love Match</div>
+            <div class="w-32 h-32 mx-auto rounded-full border-4 border-pink-400 bg-gradient-to-br from-pink-500/25 via-purple-900/50 to-black flex flex-col items-center justify-center shadow-lg">
+              <div class="text-4xl font-extrabold text-amber-300">${finalPct}%</div>
+              <div class="text-[10px] text-pink-200 font-semibold">LOVE MATCH</div>
             </div>
             <div class="text-sm font-bold text-amber-200">${title}</div>
           </div>
           <div class="md:col-span-8 space-y-2.5 text-xs">
-            ${[
-              ['❤️ भावनात्मक जुड़ाव (Emotional Bond)', emo, 'from-pink-500 to-rose-400'],
-              ['💬 संवाद और विश्वास (Trust & Communication)', comm, 'from-cyan-400 to-blue-400'],
-              ['💍 दीर्घकालिक स्थिरता (Long-Term Stability)', stab, 'from-amber-400 to-yellow-300'],
-              ['✨ आकर्षण व ऊर्जा (Chemistry & Warmth)', chem, 'from-purple-400 to-pink-400']
-            ]
-              .map(
-                ([lbl, val, grad]) => `
-                <div class="space-y-1">
-                  <div class="flex justify-between font-semibold"><span class="text-purple-100">${lbl}</span><span class="text-amber-200">${val}%</span></div>
-                  <div class="w-full h-2.5 rounded-full bg-black/60 overflow-hidden border border-purple-400/20">
-                    <div class="h-full bg-gradient-to-r ${grad}" style="width:${val}%"></div>
-                  </div>
-                </div>
-              `
-              )
-              .join('')}
-            ${
-              nameRes
-                ? `<div class="pt-1 text-[11px] text-purple-200/85">नामांक: <strong>${escapeHtml(n1)} (${nameRes.c1.compound}→${nameRes.c1.root})</strong> • <strong>${escapeHtml(n2)} (${nameRes.c2.compound}→${nameRes.c2.root})</strong></div>`
-                : ''
-            }
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="p-3 rounded-xl bg-black/45 border border-pink-400/25"><div class="text-purple-300">❤️ भावनात्मक जुड़ाव (स्वर)</div><div class="text-lg font-extrabold text-pink-300">${emo}%</div></div>
+              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><div class="text-purple-300">💬 संवाद व साझा कंपन</div><div class="text-lg font-extrabold text-cyan-300">${comm}%</div></div>
+              <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25"><div class="text-purple-300">🪐 ग्रह मैत्री व स्थायित्व</div><div class="text-lg font-extrabold text-emerald-300">${stab}%</div></div>
+              <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25"><div class="text-purple-300">✨ तत्व व आकर्षण</div><div class="text-lg font-extrabold text-amber-300">${chem}%</div></div>
+            </div>
+            ${faceMeta ? `<div class="p-2.5 rounded-xl bg-pink-950/35 border border-pink-400/30 text-[11px] text-pink-100"><strong>👤 चेहरा विश्लेषण:</strong> चेहरा 1 समरूपता ${faceMeta.sym1}% • चेहरा 2 समरूपता ${faceMeta.sym2}% • फेस स्कोर: <strong>${faceMeta.faceScore}%</strong></div>` : ''}
           </div>
         `;
 
+        // Transparent Step-by-Step "Why This Percentage Came Out" Breakdown
+        let breakdownHtml = '';
+        if (nameRes) {
+          breakdownHtml = `
+            <div class="md:col-span-2 gold-card rounded-2xl p-4 sm:p-5 space-y-3 border border-pink-400/40">
+              <h4 class="text-sm sm:text-base font-bold text-amber-200">🔍 नाम से ${finalPct}% क्यों आया? — एक-एक अक्षर और 5-फैक्टर पूरा गणित</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div class="p-3 rounded-xl bg-black/50 border border-amber-400/25 space-y-1">
+                  <div class="font-bold text-amber-300">1️⃣ ${escapeHtml(n1)} का नाम विश्लेषण</div>
+                  <div class="text-[11px] text-purple-200 font-mono break-all">${escapeHtml(nameRes.b1)} = <strong>${nameRes.c1.compound} → नामांक ${nameRes.c1.root}</strong></div>
+                  <div class="text-[11px] text-cyan-200">स्वामी ग्रह: <strong>${nameRes.p1.hi}</strong> • नाम राशि: <strong>${nameRes.rashi1}</strong> (${nameRes.elem1})</div>
+                </div>
+                <div class="p-3 rounded-xl bg-black/50 border border-pink-400/25 space-y-1">
+                  <div class="font-bold text-pink-300">2️⃣ ${escapeHtml(n2)} का नाम विश्लेषण</div>
+                  <div class="text-[11px] text-purple-200 font-mono break-all">${escapeHtml(nameRes.b2)} = <strong>${nameRes.c2.compound} → नामांक ${nameRes.c2.root}</strong></div>
+                  <div class="text-[11px] text-cyan-200">स्वामी ग्रह: <strong>${nameRes.p2.hi}</strong> • नाम राशि: <strong>${nameRes.rashi2}</strong> (${nameRes.elem2})</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-[11px]">
+                <div class="p-2.5 rounded-xl bg-black/45 border border-emerald-400/30"><strong class="text-emerald-300 block">🪐 ग्रह मैत्री (${nameRes.planetPts}/30)</strong><span class="text-purple-100/85">${nameRes.planetRel}</span></div>
+                <div class="p-2.5 rounded-xl bg-black/45 border border-pink-400/30"><strong class="text-pink-300 block">❤️ हृदय-स्वर (${nameRes.vowelPts}/20)</strong><span class="text-purple-100/85">स्वर अंक ${nameRes.vRoot1} व ${nameRes.vRoot2} (${nameRes.vowels1 || '-'} / ${nameRes.vowels2 || '-'})</span></div>
+                <div class="p-2.5 rounded-xl bg-black/45 border border-cyan-400/30"><strong class="text-cyan-300 block">🎭 व्यक्तित्व (${nameRes.consPts}/15)</strong><span class="text-purple-100/85">व्यंजन अंक ${nameRes.consR1} व ${nameRes.consR2} का सामाजिक तालमेल</span></div>
+                <div class="p-2.5 rounded-xl bg-black/45 border border-amber-400/30"><strong class="text-amber-300 block">🔤 साझा अक्षर (${nameRes.sharedPts}/15)</strong><span class="text-purple-100/85">${nameRes.sharedLetters.length ? 'दोनों में कॉमन: ' + nameRes.sharedLetters.join(', ') : 'दोनों के अक्षर अलग व पूरक हैं'}</span></div>
+                <div class="p-2.5 rounded-xl bg-black/45 border border-purple-400/30"><strong class="text-purple-200 block">🔥 तत्व मेल (${nameRes.elemPts}/20)</strong><span class="text-purple-100/85">${nameRes.elemRel}</span></div>
+              </div>
+            </div>
+          `;
+        }
+
         el('loveDetailsGrid').innerHTML = `
-          <div class="gold-card-subtle rounded-2xl p-4 space-y-1.5 border border-emerald-400/30">
-            <h4 class="font-bold text-emerald-300">✅ रिश्ते की प्रमुख ताकत (Strengths)</h4>
-            <p class="text-purple-100/90 leading-relaxed">${
-              finalPct >= 75
-                ? 'आप दोनों के बीच स्वाभाविक समझ, सम्मान और एक-दूसरे को आगे बढ़ाने की सकारात्मक ऊर्जा दिखाई देती है।'
-                : 'दोनों के अलग-अलग गुण एक-दूसरे के पूरक बन सकते हैं यदि आपसी संवाद पारदर्शी रखा जाए।'
-            }</p>
-          </div>
-          <div class="gold-card-subtle rounded-2xl p-4 space-y-1.5 border border-amber-400/30">
-            <h4 class="font-bold text-amber-300">🌟 प्रेम बढ़ाने के सुझाव (Relationship Guidance)</h4>
-            <p class="text-purple-100/90 leading-relaxed">छोटी गलतफहमियों को तुरंत शांत बातचीत से सुलझाएं, एक-दूसरे के समय और भावनाओं का सम्मान करें और साथ में सकारात्मक यादें बनाएं।</p>
+          ${breakdownHtml}
+          <div id="loveAiDeepBox" class="md:col-span-2 gold-card rounded-2xl p-4 sm:p-5 space-y-2.5 border border-cyan-400/35 text-xs sm:text-sm">
+            <div class="flex items-center gap-2 text-cyan-200"><span class="w-4 h-4 border-2 border-cyan-400/30 border-t-amber-300 rounded-full animate-spin inline-block"></span> Real Gemini AI आप दोनों के नाम व ग्रहों का गहरा व्यक्तिगत प्रेम विश्लेषण तैयार कर रहा है...</div>
           </div>
         `;
 
         lastLoveSpeech = `${pairTitle} का लव कैलकुलेटर परिणाम ${finalPct} प्रतिशत है। ${title}।`;
+
+        // Fetch Real Gemini AI Personalized Love Explanation
+        try {
+          const base = (typeof getActiveBackendUrl === 'function' ? getActiveBackendUrl() : window.location.origin).replace(/\/+$/, '');
+          const res = await fetch(`${base}/api/ai-jyotish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: 'love',
+              language: state.lang || 'hi',
+              data: {
+                name1: n1 || 'Partner 1', name2: n2 || 'Partner 2', mode, finalPct, emo, comm, stab, chem,
+                nameBreakdown: nameRes ? {
+                  p1Num: nameRes.c1.root, p1Compound: nameRes.c1.compound, p1Planet: nameRes.p1.hi, rashi1: nameRes.rashi1, elem1: nameRes.elem1,
+                  p2Num: nameRes.c2.root, p2Compound: nameRes.c2.compound, p2Planet: nameRes.p2.hi, rashi2: nameRes.rashi2, elem2: nameRes.elem2,
+                  planetRel: nameRes.planetRel, elemRel: nameRes.elemRel, sharedLetters: nameRes.sharedLetters
+                } : null,
+                faceMeta
+              }
+            })
+          });
+          if (!res.ok) throw new Error('AI busy');
+          const ai = await res.json();
+          const tips = Array.isArray(ai.couple_tips) ? ai.couple_tips : [];
+          if (el('loveAiDeepBox')) {
+            el('loveAiDeepBox').innerHTML = `
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <h4 class="text-sm sm:text-base font-bold text-pink-200">✨ ${escapeHtml(pairTitle)} — Real AI विस्तृत प्रेम व भविष्य रिपोर्ट</h4>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">Real AI Unique</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
+                <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25"><strong class="text-amber-300 block mb-1">🎯 ${finalPct}% क्यों आया (विस्तृत कारण):</strong>${escapeHtml(ai.why_this_score || '')}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25"><strong class="text-emerald-300 block mb-1">✅ सबसे मजबूत कड़ी (Strength):</strong>${escapeHtml(ai.deepest_strength || '')}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-rose-400/25"><strong class="text-rose-300 block mb-1">⚠️ सावधानी के बिंदु (Watch-Outs):</strong>${escapeHtml(ai.potential_friction || '')}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-pink-400/25"><strong class="text-pink-300 block mb-1">💍 शादी व भविष्य का योग:</strong>${escapeHtml(ai.marriage_future || '')}</div>
+              </div>
+              ${tips.length ? `<div class="p-3 rounded-xl bg-amber-950/35 border border-amber-400/30 text-xs text-amber-100 space-y-1"><strong class="text-amber-300 block">💡 आप दोनों के लिए 3 विशेष उपाय:</strong><ul class="list-disc pl-4 space-y-1">${tips.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul></div>` : ''}
+            `;
+          }
+        } catch (_) {
+          if (el('loveAiDeepBox')) {
+            el('loveAiDeepBox').innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-purple-100/90">
+                <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25"><strong class="text-emerald-300 block mb-1">✅ रिश्ते की ताकत:</strong>${nameRes ? `${nameRes.planetRel} और ${nameRes.elemRel} आप दोनों के रिश्ते की मुख्य नींव है।` : 'आप दोनों के चेहरे की सकारात्मक आभा व समरूपता अच्छे तालमेल का संकेत देती है।'}</div>
+                <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25"><strong class="text-amber-300 block mb-1">🌟 रिश्ते के लिए सुझाव:</strong>छोटी गलतफहमियों को तुरंत शांत संवाद से सुलझाएं और एक-दूसरे के स्वभाव व समय का सम्मान करें।</div>
+              </div>
+            `;
+          }
+        }
       }
 
       // =========================================================================
@@ -10884,8 +11108,6 @@
         const dobVal = (el('marriageDobInput')?.value || '').trim();
         const timeVal = (el('marriageTimeInput')?.value || '08:30').trim();
         const placeOpt = el('marriageCitySelect')?.options?.[el('marriageCitySelect').selectedIndex]?.textContent || 'India';
-        const [lat, lon, tz] = (el('marriageCitySelect')?.value || '28.6139,77.2090,5.5').split(',').map(Number);
-
         if (!dobVal) {
           showToast('कृपया अपनी जन्मतिथि (DOB) चुनें।');
           return;
@@ -10893,9 +11115,11 @@
 
         const [y, m, d] = dobVal.split('-').map(Number);
         const [hh, mm] = timeVal.split(':').map(Number);
-        const jd = toJulianDay(y, m, d, hh + mm / 60 - (tz || 5.5));
+        const { lat, lon, tz } = parsePlaceOptionValue(el('marriageCitySelect')?.value, y, m, d, hh, mm);
+        const jdUT = toJulianDay(y, m, d, hh + mm / 60 - tz);
+        const jd = jdUT + getDeltaTDays(y);
         const ayan = getLahiriAyanamsha(jd);
-        const lagnaLon = getLagnaSidereal(jd, lat || 28.61, lon || 77.21);
+        const lagnaLon = getLagnaSidereal(jdUT, lat, lon);
         const lagnaIdx = Math.floor(lagnaLon / 30);
         const seventhIdx = (lagnaIdx + 6) % 12;
         const moonLon = norm360(getMoonTropical(jd) - ayan);
@@ -11322,6 +11546,14 @@
           rd.readAsDataURL(f);
         });
         if (el('scanVastuMapBtn')) el('scanVastuMapBtn').addEventListener('click', runVastuMapScan);
+                const openLegal = (title) => {
+          if (el('legalModalTitle')) el('legalModalTitle').textContent = title;
+          el('legalPrivacyModal')?.classList.remove('hidden');
+        };
+        if (el('openPrivacyModalBtn')) el('openPrivacyModalBtn').addEventListener('click', () => openLegal('🔒 प्राइवेसी पॉलिसी (Privacy Policy — MAHAJYOTISH)'));
+        if (el('openTermsModalBtn')) el('openTermsModalBtn').addEventListener('click', () => openLegal('📜 नियम, शर्तें एवं अस्वीकरण (Terms & Disclaimer)'));
+        if (el('closeLegalModalBtn')) el('closeLegalModalBtn').addEventListener('click', () => el('legalPrivacyModal')?.classList.add('hidden'));
+        if (el('okLegalModalBtn')) el('okLegalModalBtn').addEventListener('click', () => el('legalPrivacyModal')?.classList.add('hidden'));
         if (el('printVastuMapPdfBtn')) el('printVastuMapPdfBtn').addEventListener('click', () => generateAndShowPdfModal('vastuMapResultWrap', 'MAHAJYOTISH_Vastu_Map_Report'));
         el('kundliCitySearch').addEventListener('input', (e) => populateCityDropdown('kundliCitySelect', e.target.value));
         el('kundliWebPlaceSearchBtn').addEventListener('click', searchAnyIndianTownOnline);
