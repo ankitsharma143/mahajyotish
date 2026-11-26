@@ -1780,15 +1780,15 @@
         <div class="lg:col-span-5 gold-card rounded-2xl p-4 sm:p-5 space-y-3.5">
           <div class="flex items-center justify-between gap-2">
             <div>
-              <h3 id="vizTitle" class="text-sm font-bold text-amber-200">हथेली रेखा विज़ुअलाइज़ेशन</h3>
-              <p id="vizSubtitle" class="text-[11px] text-purple-200/70">केवल सत्यापित कोऑर्डिनेट्स वाली रेखाएं हाइलाइट हैं</p>
+              <h3 id="vizTitle" class="text-sm font-bold text-amber-200">📸 आपकी असली हथेली की फोटो (बिना ओवरले लाइन)</h3>
+              <p id="vizSubtitle" class="text-[11px] text-purple-200/75">आपकी रिपोर्ट सीधे इस असली फोटो से AI द्वारा बनाई गई है</p>
             </div>
-            <button id="toggleOverlayBtn" type="button" class="no-print px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-400/45 bg-amber-400/15 text-amber-200">
-              Overlay: ON
+            <button id="toggleOverlayBtn" type="button" class="hidden no-print px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-400/45 bg-amber-400/15 text-amber-200">
+              Overlay: OFF
             </button>
           </div>
 
-          <div id="palmCanvasContainer" class="relative rounded-xl overflow-auto bg-black/70 border border-amber-400/30 flex items-center justify-center min-h-[260px] max-h-[460px]">
+          <div id="palmCanvasContainer" class="relative rounded-xl overflow-auto bg-black/70 border border-amber-400/30 flex items-center justify-center min-h-[240px] max-h-[440px]">
             <canvas id="palmOverlayCanvas" class="max-w-full h-auto block transition-transform duration-150 origin-center"></canvas>
           </div>
           <div class="no-print flex items-center justify-between gap-2.5 text-[11px] text-purple-200/85 bg-black/35 px-3 py-2 rounded-xl border border-purple-400/20">
@@ -1797,8 +1797,81 @@
             <button id="resetZoomBtn" type="button" class="px-2 py-0.5 rounded bg-purple-900/70 text-purple-100 border border-purple-400/30">Reset</button>
           </div>
 
-          <!-- Color Legend (Module 8 Exact Colors) -->
-          <div id="lineLegendGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]"></div>
+          <!-- Standard Reference Palm Guide Diagram (Not User's Photo) -->
+          <div id="standardPalmReferenceCard" class="rounded-2xl p-3.5 sm:p-4 bg-black/55 border border-cyan-400/35 space-y-2.5">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <h4 class="text-xs sm:text-sm font-bold text-cyan-200">🗺️ हस्तरेखा पहचान संदर्भ चित्र (कौन-सी रेखा कहाँ होती है)</h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-400/40">केवल समझाने हेतु (Reference Guide)</span>
+            </div>
+            <div class="rounded-xl bg-[#120b24] border border-purple-400/25 p-2 flex items-center justify-center">
+              <svg viewBox="0 0 420 470" class="w-full max-w-[360px] h-auto" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="refPalmFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3b2657"/>
+                    <stop offset="100%" stop-color="#1e1333"/>
+                  </linearGradient>
+                </defs>
+                <!-- Clean Anatomical Open Palm Silhouette -->
+                <path d="M148 446 L140 344 C108 318 68 274 48 232 C36 206 66 188 84 210 L126 264 L112 118 C108 86 146 82 152 114 L164 216 L174 68 C176 34 216 34 218 68 L220 208 L244 86 C250 54 288 60 284 92 L268 218 L310 144 C322 114 358 128 346 158 L302 280 C300 342 288 394 274 446 Z" fill="url(#refPalmFill)" stroke="#e8be5a" stroke-width="2" stroke-linejoin="round"/>
+                <!-- 1. Heart Line (हृदय रेखा — Top horizontal below fingers) -->
+                <path d="M298 242 C258 236 218 232 162 214" fill="none" stroke="#ec4899" stroke-width="4" stroke-linecap="round"/>
+                <!-- 2. Head Line (मस्तिष्क रेखा — Middle horizontal/sloping) -->
+                <path d="M138 264 C182 268 232 280 286 298" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"/>
+                <!-- 3. Life Line (जीवन रेखा — Curves INWARD around thumb pad to wrist) -->
+                <path d="M138 264 C168 286 192 324 198 370 C200 398 196 420 190 438" fill="none" stroke="#06b6d4" stroke-width="4.2" stroke-linecap="round"/>
+                <!-- 4. Fate Line (भाग्य रेखा — Vertical center from wrist toward middle finger) -->
+                <path d="M218 436 C216 374 214 304 204 224" fill="none" stroke="#f59e0b" stroke-width="3.6" stroke-linecap="round"/>
+                <!-- 5. Sun Line (सूर्य रेखा — Vertical under ring finger) -->
+                <path d="M254 294 C256 266 260 242 264 216" fill="none" stroke="#f97316" stroke-width="3.4" stroke-linecap="round"/>
+                <!-- 6. Mercury / Health Line (बुध रेखा — Slanting toward little finger) -->
+                <path d="M230 388 C252 350 274 308 292 264" fill="none" stroke="#a855f7" stroke-width="3" stroke-dasharray="5 3" stroke-linecap="round"/>
+                <!-- 7. Marriage / Relationship Line (विवाह रेखा — Short horizontal on pinky edge) -->
+                <path d="M292 222 L316 218" fill="none" stroke="#fb7185" stroke-width="3.4" stroke-linecap="round"/>
+
+                <!-- Crisp Non-Overlapping Labels with Pointers -->
+                <!-- विवाह रेखा -->
+                <line x1="316" y1="218" x2="342" y2="196" stroke="#fb7185" stroke-width="1.3"/>
+                <rect x="312" y="176" width="102" height="20" rx="5" fill="#1a0b2e" stroke="#fb7185" stroke-width="1.2"/>
+                <text x="363" y="190" fill="#fda4af" font-size="11" font-weight="bold" text-anchor="middle">विवाह / संबंध रेखा</text>
+
+                <!-- सूर्य रेखा -->
+                <line x1="264" y1="226" x2="334" y2="232" stroke="#f97316" stroke-width="1.3"/>
+                <rect x="330" y="222" width="84" height="20" rx="5" fill="#1a0b2e" stroke="#f97316" stroke-width="1.2"/>
+                <text x="372" y="236" fill="#fdba74" font-size="11" font-weight="bold" text-anchor="middle">सूर्य रेखा (Sun)</text>
+
+                <!-- हृदय रेखा -->
+                <line x1="278" y1="242" x2="334" y2="262" stroke="#ec4899" stroke-width="1.3"/>
+                <rect x="328" y="252" width="86" height="20" rx="5" fill="#1a0b2e" stroke="#ec4899" stroke-width="1.2"/>
+                <text x="371" y="266" fill="#f9a8d4" font-size="11" font-weight="bold" text-anchor="middle">हृदय रेखा (Heart)</text>
+
+                <!-- बुध रेखा -->
+                <line x1="276" y1="304" x2="332" y2="304" stroke="#a855f7" stroke-width="1.3"/>
+                <rect x="328" y="294" width="86" height="20" rx="5" fill="#1a0b2e" stroke="#a855f7" stroke-width="1.2"/>
+                <text x="371" y="308" fill="#d8b4fe" font-size="11" font-weight="bold" text-anchor="middle">बुध रेखा (Health)</text>
+
+                <!-- मस्तिष्क रेखा -->
+                <line x1="172" y1="268" x2="96" y2="314" stroke="#3b82f6" stroke-width="1.3"/>
+                <rect x="6" y="306" width="106" height="20" rx="5" fill="#1a0b2e" stroke="#3b82f6" stroke-width="1.2"/>
+                <text x="59" y="320" fill="#93c5fd" font-size="11" font-weight="bold" text-anchor="middle">मस्तिष्क रेखा (Head)</text>
+
+                <!-- जीवन रेखा -->
+                <line x1="194" y1="364" x2="108" y2="386" stroke="#06b6d4" stroke-width="1.3"/>
+                <rect x="8" y="376" width="104" height="20" rx="5" fill="#1a0b2e" stroke="#06b6d4" stroke-width="1.2"/>
+                <text x="60" y="390" fill="#67e8f9" font-size="11" font-weight="bold" text-anchor="middle">जीवन रेखा (Life)</text>
+
+                <!-- भाग्य रेखा -->
+                <line x1="216" y1="398" x2="316" y2="398" stroke="#f59e0b" stroke-width="1.3"/>
+                <rect x="312" y="388" width="102" height="20" rx="5" fill="#1a0b2e" stroke="#f59e0b" stroke-width="1.2"/>
+                <text x="363" y="402" fill="#fcd34d" font-size="11" font-weight="bold" text-anchor="middle">भाग्य रेखा (Fate)</text>
+              </svg>
+            </div>
+            <p class="text-[11px] text-amber-200/95 bg-amber-950/40 border border-amber-400/35 rounded-xl p-2.5 leading-relaxed">
+              <strong>ℹ️ स्पष्ट सूचना:</strong> यह <strong>आपके हाथ की फोटो नहीं है</strong>। यह केवल एक मानक संदर्भ चित्र (Reference Guide) है ताकि आप आसानी से समझ सकें कि हथेली में कौन-सी रेखा कहाँ होती है। आपका वास्तविक AI विश्लेषण ऊपर दी गई <strong>आपकी असली हथेली की फोटो</strong> के आधार पर किया गया है।
+            </p>
+          </div>
+
+          <!-- Hidden legacy legend holder -->
+          <div id="lineLegendGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]"></div>
         </div>
 
         <!-- Summary & Confidence & Lucky Indicators -->
@@ -3707,7 +3780,7 @@
           ctx.clearRect(0, 0, cw, ch);
           ctx.drawImage(img, 0, 0, cw, ch);
 
-          if (state.overlayEnabled && state.currentReport && state.currentReport.line_coordinates) {
+          if (false && state.overlayEnabled && state.currentReport && state.currentReport.line_coordinates) {
             const coords = state.currentReport.line_coordinates;
             const overlayKeys = ['life_line', 'head_line', 'heart_line', 'fate_line', 'sun_line'];
             let pxData = null;
