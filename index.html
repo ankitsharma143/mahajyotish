@@ -585,6 +585,8 @@
 
         <!-- Kundli Core Cards -->
         <div id="kundliAvakhadaGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+        <!-- Sampoorna Avakhada Chakra, Birth Panchang, Ghatak Chakra & Ishta Devta/Ratna -->
+        <div id="kundliFullAvakhadaCard" class="space-y-4"></div>
 
         <!-- North Indian Diamond Chart + Graha Table -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -5825,6 +5827,182 @@
           <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">जन्म नक्षत्र व चरण</div><div class="text-lg font-extrabold text-pink-300">${NAKSHATRAS_HI[moonP.nakIdx]}</div><div class="text-[11px] text-purple-200">चरण (Pada): ${moonP.pada}</div></div>
           <div class="gold-card rounded-2xl p-3.5"><div class="text-[11px] text-purple-300">वर्तमान महादशा</div><div class="text-lg font-extrabold text-emerald-300">${activeDasha.lord}</div><div class="text-[11px] text-purple-200">${activeDasha.startY} – ${activeDasha.endY}</div></div>
         `;
+
+        
+        // =========================================================================
+        // SAMPOORNA AVAKHADA CHAKRA (गण, योनि, नाड़ी, वर्ण, वश्य, पाया, तत्व, नामाक्षर, ऋषि/गोत्र)
+        // + BIRTH PANCHANG + GHATAK CHAKRA + ISHTA DEVTA & SHUBH RATNA
+        // =========================================================================
+        const NAK_GANA = [
+          'देव गण (Dev)', 'मनुष्य गण (Manushya)', 'राक्षस गण (Rakshasa)', 'मनुष्य गण (Manushya)', 'देव गण (Dev)',
+          'मनुष्य गण (Manushya)', 'देव गण (Dev)', 'देव गण (Dev)', 'राक्षस गण (Rakshasa)', 'राक्षस गण (Rakshasa)',
+          'मनुष्य गण (Manushya)', 'मनुष्य गण (Manushya)', 'देव गण (Dev)', 'राक्षस गण (Rakshasa)', 'देव गण (Dev)',
+          'राक्षस गण (Rakshasa)', 'देव गण (Dev)', 'राक्षस गण (Rakshasa)', 'राक्षस गण (Rakshasa)', 'मनुष्य गण (Manushya)',
+          'मनुष्य गण (Manushya)', 'देव गण (Dev)', 'राक्षस गण (Rakshasa)', 'राक्षस गण (Rakshasa)', 'मनुष्य गण (Manushya)',
+          'मनुष्य गण (Manushya)', 'देव गण (Dev)'
+        ];
+        const NAK_YONI = [
+          'अश्व (घोड़ा)', 'गज (हाथी)', 'मेष (भेड़)', 'सर्प', 'सर्प', 'श्वान (कुत्ता)', 'मार्जार (बिल्ली)',
+          'मेष (भेड़)', 'मार्जार (बिल्ली)', 'मूषक (चूहा)', 'मूषक (चूहा)', 'गौ (गाय)', 'महिष (भैंस)', 'व्याघ्र (बाघ)',
+          'महिष (भैंस)', 'व्याघ्र (बाघ)', 'मृग (हिरण)', 'मृग (हिरण)', 'श्वान (कुत्ता)', 'वानर (बंदर)', 'नकुल (नेवला)',
+          'वानर (बंदर)', 'सिंह (शेर)', 'अश्व (घोड़ा)', 'सिंह (शेर)', 'गौ (गाय)', 'गज (हाथी)'
+        ];
+        const NAK_NADI_HI = [
+          'आदि (Aadi)', 'मध्य (Madhya)', 'अंत्य (Antya)', 'अंत्य (Antya)', 'मध्य (Madhya)', 'आदि (Aadi)',
+          'आदि (Aadi)', 'मध्य (Madhya)', 'अंत्य (Antya)', 'अंत्य (Antya)', 'मध्य (Madhya)', 'आदि (Aadi)',
+          'आदि (Aadi)', 'मध्य (Madhya)', 'अंत्य (Antya)', 'अंत्य (Antya)', 'मध्य (Madhya)', 'आदि (Aadi)',
+          'आदि (Aadi)', 'मध्य (Madhya)', 'अंत्य (Antya)', 'अंत्य (Antya)', 'मध्य (Madhya)', 'आदि (Aadi)',
+          'आदि (Aadi)', 'मध्य (Madhya)', 'अंत्य (Antya)'
+        ];
+        const NAK_DEVTA = [
+          'अश्विनी कुमार', 'यमराज', 'अग्नि देव', 'ब्रह्मा (प्रजापति)', 'चंद्र देव (सोम)', 'रुद्र (शिव)', 'अदिति',
+          'बृहस्पति', 'नाग देव (सर्प)', 'पितृ देव', 'भग (आर्यमा)', 'अर्यमा', 'सविता (सूर्य)', 'विश्वकर्मा (त्वष्टा)',
+          'वायु देव', 'इंद्र-अग्नि', 'मित्र देव', 'इंद्र देव', 'निरृति', 'जल देव (आपः)', 'विश्वेदेव', 'भगवान विष्णु',
+          'अष्ट वसु', 'वरुण देव', 'अज एकपाद', 'अहिर्बुध्न्य', 'पूषा देव'
+        ];
+        const NAK_RISHI_GOTRA = [
+          'भारद्वाज (अश्विनी ऋषि)', 'वशिष्ठ (भृगु परंपरा)', 'कश्यप (अग्नि ऋषि)', 'अत्रि (प्रजापति)', 'गौतम (सोम)',
+          'विश्वामित्र (रुद्र)', 'जमदग्नि (अदिति)', 'भारद्वाज (बृहस्पति)', 'कश्यप (सर्प)', 'अत्रि (पितृ)',
+          'वशिष्ठ (भग)', 'गौतम (अर्यमा)', 'विश्वामित्र (सविता)', 'जमदग्नि (त्वष्टा)', 'भारद्वाज (वायु)',
+          'कश्यप (इंद्र-अग्नि)', 'अत्रि (मित्र)', 'वशिष्ठ (इंद्र)', 'गौतम (निरृति)', 'विश्वामित्र (आपः)',
+          'जमदग्नि (विश्वेदेव)', 'भारद्वाज (विष्णु)', 'कश्यप (वसु)', 'अत्रि (वरुण)', 'वशिष्ठ (अज)',
+          'गौतम (अहिर्बुध्न्य)', 'विश्वामित्र (पूषा)'
+        ];
+        const NAK_VRIKSHA = [
+          'कुचला', 'आंवला', 'गूलर', 'जामुन', 'खैर', 'शीशम', 'बांस', 'पीपल', 'नागकेसर', 'बरगद', 'पलाश', 'पाकड़',
+          'रीठा', 'बेल', 'अर्जुन', 'कटेरी', 'मौलसिरी', 'चीड़', 'साल', 'अशोक', 'कटहल', 'मदार (आक)', 'शमी', 'कदंब',
+          'आम', 'नीम', 'महुआ'
+        ];
+        const NAK_PADA_SYLLABLES = [
+          ['चू','चे','चो','ला'], ['ली','लू','ले','लो'], ['अ','ई','उ','ए'], ['ओ','वा','वी','वू'], ['वे','वो','का','की'],
+          ['कू','घ','ङ','छ'], ['के','को','हा','ही'], ['हू','हे','हो','डा'], ['डी','डू','डे','डो'], ['मा','मी','मू','मे'],
+          ['मो','टा','टी','टू'], ['टे','टो','पा','पी'], ['पू','ष','ण','ठ'], ['पे','पो','रा','री'], ['रू','रे','रो','ता'],
+          ['ती','तू','ते','तो'], ['ना','नी','नू','ने'], ['नो','या','यी','यू'], ['ये','यो','भा','भी'], ['भू','धा','फा','ढा'],
+          ['भे','भो','जा','जी'], ['खी','खू','खे','खो'], ['गा','गी','गू','गे'], ['गो','सा','सी','सू'], ['से','सो','दा','दी'],
+          ['दू','थ','झ','ञ'], ['दे','दो','चा','ची']
+        ];
+        const RASHI_VARNA_HI = ['क्षत्रिय','वैश्य','शूद्र','ब्राह्मण','क्षत्रिय','वैश्य','शूद्र','ब्राह्मण','क्षत्रिय','वैश्य','शूद्र','ब्राह्मण'];
+        const RASHI_VASHYA_HI = ['चतुष्पद','चतुष्पद','मानव','जलचर','वनचर','मानव','मानव','कीट','चतुष्पद/मानव','जलचर/चतुष्पद','मानव','जलचर'];
+        const RASHI_TATVA_HI = ['अग्नि (Fire)','पृथ्वी (Earth)','वायु (Air)','जल (Water)','अग्नि (Fire)','पृथ्वी (Earth)','वायु (Air)','जल (Water)','अग्नि (Fire)','पृथ्वी (Earth)','वायु (Air)','जल (Water)'];
+        const GHATAK_TABLE = [
+          { var: 'रविवार', tithi: '1, 6, 11', maas: 'कार्तिक', nak: 'मघा', yog: 'विष्कुम्भ', lagna: 'मेष' },
+          { var: 'शनिवार', tithi: '5, 10, 15', maas: 'मार्गशीर्ष', nak: 'हस्त', yog: 'शूल', lagna: 'वृषभ' },
+          { var: 'सोमवार', tithi: '2, 7, 12', maas: 'आषाढ़', nak: 'स्वाति', yog: 'गंड', lagna: 'मिथुन' },
+          { var: 'बुधवार', tithi: '2, 7, 12', maas: 'पौष', nak: 'अनुराधा', yog: 'व्याघात', lagna: 'कर्क' },
+          { var: 'शनिवार', tithi: '3, 8, 13', maas: 'माघ', nak: 'मूल', yog: 'हर्षण', lagna: 'सिंह' },
+          { var: 'शनिवार', tithi: '5, 10, 15', maas: 'भाद्रपद', nak: 'श्रवण', yog: 'वज्र', lagna: 'कन्या' },
+          { var: 'गुरुवार', tithi: '4, 9, 14', maas: 'माघ', nak: 'शतभिषा', yog: 'व्यतीपात', lagna: 'तुला' },
+          { var: 'शुक्रवार', tithi: '1, 6, 11', maas: 'आश्विन', nak: 'रेवती', yog: 'परिघ', lagna: 'वृश्चिक' },
+          { var: 'शुक्रवार', tithi: '3, 8, 13', maas: 'चैत्र', nak: 'अश्विनी', yog: 'वैधृति', lagna: 'धनु' },
+          { var: 'मंगलवार', tithi: '4, 9, 14', maas: 'वैशाख', nak: 'रोहिणी', yog: 'अतिगंड', lagna: 'मकर' },
+          { var: 'गुरुवार', tithi: '3, 8, 13', maas: 'ज्येष्ठ', nak: 'आर्द्रा', yog: 'शूल', lagna: 'कुंभ' },
+          { var: 'शुक्रवार', tithi: '5, 10, 15', maas: 'फाल्गुन', nak: 'आश्लेषा', yog: 'गंड', lagna: 'मीन' }
+        ];
+        const LORD_RATNA_MAP = {
+          'मंगल': { ratna: 'मूंगा (Red Coral)', devta: 'श्री हनुमान जी', mantra: 'ॐ क्रां क्रीं क्रौं सः भौमाय नमः', color: 'लाल / केसरिया', day: 'मंगलवार' },
+          'शुक्र': { ratna: 'हीरा / ओपल (Opal)', devta: 'माता लक्ष्मी / दुर्गा', mantra: 'ॐ द्रां द्रीं द्रौं सः शुक्राय नमः', color: 'सफेद / क्रीम', day: 'शुक्रवार' },
+          'बुध': { ratna: 'पन्ना (Emerald)', devta: 'भगवान गणेश / विष्णु', mantra: 'ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः', color: 'हरा', day: 'बुधवार' },
+          'चंद्र': { ratna: 'मोती (Pearl)', devta: 'भगवान शिव', mantra: 'ॐ श्रां श्रीं श्रौं सः चंद्रमसे नमः', color: 'सफेद / मोती रंग', day: 'सोमवार' },
+          'सूर्य': { ratna: 'माणिक्य (Ruby)', devta: 'भगवान सूर्य / श्री राम', mantra: 'ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः', color: 'सुनहरा / लाल', day: 'रविवार' },
+          'बृहस्पति': { ratna: 'पुखराज (Yellow Sapphire)', devta: 'भगवान विष्णु / दत्तात्रेय', mantra: 'ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः', color: 'पीला', day: 'गुरुवार' },
+          'शनि': { ratna: 'नीलम / नीली (Blue Sapphire)', devta: 'भगवान शिव / भैरव / हनुमान जी', mantra: 'ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः', color: 'नीला / काला', day: 'शनिवार' }
+        };
+
+        const moonHouseFromLagna = moonP.house;
+        const payaHi = [1, 6, 11].includes(moonHouseFromLagna) ? 'स्वर्ण पाया (सोना — Gold)' : [2, 5, 9].includes(moonHouseFromLagna) ? 'रजत पाया (चांदी — Silver)' : [3, 7, 10].includes(moonHouseFromLagna) ? 'ताम्र पाया (तांबा — Copper)' : 'लौह पाया (लोहा — Iron)';
+        const naamAkshar = (NAK_PADA_SYLLABLES[moonP.nakIdx] || ['अ','ई','उ','ए'])[Math.max(0, Math.min(3, moonP.pada - 1))];
+        const ganaHi = NAK_GANA[moonP.nakIdx];
+        const yoniHi = NAK_YONI[moonP.nakIdx];
+        const nadiHi = NAK_NADI_HI[moonP.nakIdx];
+        const varnaHi = RASHI_VARNA_HI[moonP.rIdx];
+        const vashyaHi = RASHI_VASHYA_HI[moonP.rIdx];
+        const tatvaHi = RASHI_TATVA_HI[moonP.rIdx];
+        const nakDevtaHi = NAK_DEVTA[moonP.nakIdx];
+        const rishiGotraHi = NAK_RISHI_GOTRA[moonP.nakIdx];
+        const nakVrikshaHi = NAK_VRIKSHA[moonP.nakIdx];
+        const ghatak = GHATAK_TABLE[moonP.rIdx];
+
+        // Birth Panchang (Exact Tithi, Paksha, Yoga, Karana, Vaar, Vikram Samvat)
+        const birthDateObj = new Date(Date.UTC(y, m - 1, d));
+        const VAAR_HI = ['रविवार (Sunday)', 'सोमवार (Monday)', 'मंगलवार (Tuesday)', 'बुधवार (Wednesday)', 'गुरुवार (Thursday)', 'शुक्रवार (Friday)', 'शनिवार (Saturday)'];
+        const birthVaar = VAAR_HI[birthDateObj.getUTCDay()];
+        const tithiDiff = norm360(moonP.lon - sunP.lon);
+        const tithiNum = Math.floor(tithiDiff / 12) + 1;
+        const pakshaHi = tithiNum <= 15 ? 'शुक्ल पक्ष (Shukla)' : 'कृष्ण पक्ष (Krishna)';
+        const TITHI_NAMES_15 = ['प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पंचमी','षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी','एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा / अमावस्या'];
+        const tithiNameHi = tithiNum === 15 ? 'पूर्णिमा' : tithiNum === 30 ? 'अमावस्या' : TITHI_NAMES_15[(tithiNum - 1) % 15];
+        const YOGA_27 = ['विष्कुम्भ','प्रीति','आयुष्मान','सौभाग्य','शोभन','अतिगंड','सुकर्मा','धृति','शूल','गंड','वृद्धि','ध्रुव','व्याघात','हर्षण','वज्र','सिद्धि','व्यतीपात','वरीयान','परिघ','शिव','सिद्ध','साध्य','शुभ','शुक्ल','ब्रह्म','इंद्र','वैधृति'];
+        const birthYogaHi = YOGA_27[Math.floor(norm360(sunP.lon + moonP.lon) / (360 / 27))];
+        const KARANA_LIST = ['बव','बालव','कौलव','तैतिल','गर','वणिज','विष्टि (भद्रा)'];
+        const karIdx = Math.floor(tithiDiff / 6);
+        const birthKaranaHi = karIdx === 0 ? 'किंस्तुघ्न' : karIdx >= 57 ? ['शकुनि','चतुष्पद','नाग'][Math.min(2, karIdx - 57)] : KARANA_LIST[(karIdx - 1) % 7];
+        const vikramSamvat = m > 3 ? y + 57 : y + 56;
+
+        const lagnaLordInfo = LORD_RATNA_MAP[RASHI_LORDS_HI[lagnaIdx]] || LORD_RATNA_MAP['बृहस्पति'];
+        const fifthLordInfo = LORD_RATNA_MAP[RASHI_LORDS_HI[(lagnaIdx + 4) % 12]] || LORD_RATNA_MAP['सूर्य'];
+        const ninthLordInfo = LORD_RATNA_MAP[RASHI_LORDS_HI[(lagnaIdx + 8) % 12]] || LORD_RATNA_MAP['बृहस्पति'];
+
+        if (el('kundliFullAvakhadaCard')) {
+          el('kundliFullAvakhadaCard').innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- Complete Avakhada Chakra -->
+              <div class="gold-card rounded-2xl p-4 sm:p-5 space-y-3 border border-amber-400/35">
+                <h3 class="text-sm sm:text-base font-bold text-amber-200">📜 संपूर्ण अवकहड़ा चक्र (Avakhada Chakra — गण, योनि, नाड़ी, पाया व गोत्र)</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">गण (Gana)</span><strong class="text-amber-200">${ganaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">योनि (Yoni)</span><strong class="text-cyan-200">${yoniHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">नाड़ी (Nadi)</span><strong class="text-pink-200">${nadiHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">जन्म का पाया (Paya)</span><strong class="text-emerald-300">${payaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">वर्ण (Varna)</span><strong class="text-purple-100">${varnaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">वश्य (Vashya)</span><strong class="text-purple-100">${vashyaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">तत्व (Tatva)</span><strong class="text-amber-100">${tatvaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">जन्म नामाक्षर (First Letter)</span><strong class="text-amber-300 text-sm">“${naamAkshar}”</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">नक्षत्र देवता / वृक्ष</span><strong class="text-cyan-100">${nakDevtaHi} • ${nakVrikshaHi}</strong></div>
+                  <div class="p-2 rounded-lg bg-black/45 border border-purple-400/20"><span class="text-purple-300 block text-[10px]">वैदिक नक्षत्र ऋषि / गोत्र संकेत</span><strong class="text-emerald-200">${rishiGotraHi}</strong></div>
+                </div>
+                <p class="text-[10px] text-purple-300/75">*नोट: पारंपरिक कुल-गोत्र परिवार की वंश परंपरा से होता है; ऊपर नक्षत्र-आधारित वैदिक ऋषि गोत्र संकेत दिया गया है।</p>
+              </div>
+
+              <!-- Birth Panchang + Ghatak Chakra + Shubh Ratna & Ishta Devta -->
+              <div class="space-y-4">
+                <div class="gold-card rounded-2xl p-4 sm:p-5 space-y-2.5 border border-cyan-400/35">
+                  <h3 class="text-sm sm:text-base font-bold text-cyan-200">🗓️ जन्म पंचांग विवरण (Birth Panchang)</h3>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">जन्म वार</span><strong class="text-amber-200">${birthVaar}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">तिथि व पक्ष</span><strong class="text-cyan-200">${tithiNameHi} (${pakshaHi})</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">जन्म योग</span><strong class="text-emerald-200">${birthYogaHi}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">जन्म करण</span><strong class="text-pink-200">${birthKaranaHi}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">विक्रम संवत</span><strong class="text-amber-300">${vikramSamvat}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">अयनांश (True Lahiri)</span><strong class="text-purple-100">${ayan.toFixed(3)}°</strong></div>
+                  </div>
+                </div>
+
+                <div class="gold-card rounded-2xl p-4 sm:p-5 space-y-2.5 border border-rose-400/30">
+                  <h3 class="text-sm font-bold text-rose-200">⚠️ घात चक्र (Ghatak Chakra — सावधानी के समय)</h3>
+                  <div class="grid grid-cols-3 gap-2 text-[11px]">
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात वार</span><strong class="text-rose-200">${ghatak.var}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात तिथि</span><strong class="text-rose-200">${ghatak.tithi}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात मास</span><strong class="text-rose-200">${ghatak.maas}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात नक्षत्र</span><strong class="text-rose-200">${ghatak.nak}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात योग</span><strong class="text-rose-200">${ghatak.yog}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 block text-[10px]">घात लग्न</span><strong class="text-rose-200">${ghatak.lagna}</strong></div>
+                  </div>
+                </div>
+
+                <div class="gold-card rounded-2xl p-4 sm:p-5 space-y-2 border border-emerald-400/35 text-xs">
+                  <h3 class="text-sm font-bold text-emerald-200">💎 शुभ रत्न, इष्ट देव व मंत्र (Lucky Gems &amp; Deity)</h3>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 text-[10px] block">जीवन रत्न (लग्नेश)</span><strong class="text-amber-200">${lagnaLordInfo.ratna}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 text-[10px] block">भाग्य रत्न (नवमेश)</span><strong class="text-cyan-200">${ninthLordInfo.ratna}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 text-[10px] block">इष्ट देवता (पंचमेश)</span><strong class="text-pink-200">${fifthLordInfo.devta}</strong></div>
+                    <div class="p-2 rounded-lg bg-black/45"><span class="text-purple-300 text-[10px] block">शुभ रंग व वार</span><strong class="text-emerald-200">${lagnaLordInfo.color} • ${lagnaLordInfo.day}</strong></div>
+                  </div>
+                  <div class="p-2 rounded-lg bg-emerald-950/35 border border-emerald-400/25 text-emerald-100"><strong>🙏 शुभ बीज मंत्र:</strong> ${lagnaLordInfo.mantra}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
 
         el('northIndianChartBox').innerHTML = renderNorthIndianSvg(lagnaIdx, planetsByHouse);
 
