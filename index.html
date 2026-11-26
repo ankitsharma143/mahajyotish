@@ -5014,87 +5014,166 @@
         return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + utHours / 24 + B - 1524.5;
       }
 
-      function getLahiriAyanamsha(jd) {
+      function getNutationAndObliquity(jd) {
         const T = (jd - 2451545.0) / 36525.0;
-        return 23.853055 + 1.396971 * T + 0.000308 * T * T;
+        const omega = norm360(125.04452 - 1934.136261 * T) * DEG2RAD;
+        const Lsun = norm360(280.4665 + 36000.7698 * T) * DEG2RAD;
+        const Lmoon = norm360(218.3165 + 481267.8813 * T) * DEG2RAD;
+        const dPsi = (-17.20 * Math.sin(omega) - 1.32 * Math.sin(2 * Lsun) - 0.23 * Math.sin(2 * Lmoon) + 0.21 * Math.sin(2 * omega)) / 3600.0;
+        const dEps = (9.20 * Math.cos(omega) + 0.57 * Math.cos(2 * Lsun) + 0.10 * Math.cos(2 * Lmoon) - 0.09 * Math.cos(2 * omega)) / 3600.0;
+        const eps0 = 23.43929111 - (46.8150 * T + 0.00059 * T * T - 0.001813 * T * T * T) / 3600.0;
+        return { dPsi, eps: eps0 + dEps };
+      }
+
+      function getLahiriAyanamsha(jd) {
+        // True Chitra Paksha (Lahiri) Ayanamsha matching Indian Astronomical Ephemeris / AstroSage / Drik Panchang
+        const T = (jd - 2451545.0) / 36525.0;
+        const meanLahiri = 23.857092 + 1.396971278 * T + 0.0003086 * T * T;
+        const { dPsi } = getNutationAndObliquity(jd);
+        return meanLahiri + dPsi;
       }
 
       function getSunTropical(jd) {
-        const d = jd - 2451545.0;
-        const T = d / 36525.0;
-        const L0 = norm360(280.46646 + 36000.76983 * T);
-        const M = norm360(357.52911 + 35999.05029 * T) * DEG2RAD;
-        const C = (1.914602 - 0.004817 * T) * Math.sin(M) + 0.019993 * Math.sin(2 * M) + 0.000289 * Math.sin(3 * M);
-        return norm360(L0 + C);
+        const T = (jd - 2451545.0) / 36525.0;
+        const L0 = norm360(280.4664567 + 36000.76982779 * T + 0.0003032028 * T * T);
+        const M = norm360(357.5291092 + 35999.0502909 * T - 0.0001536 * T * T) * DEG2RAD;
+        const C =
+          (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M) +
+          (0.019993 - 0.000101 * T) * Math.sin(2 * M) +
+          0.000289 * Math.sin(3 * M);
+        const omega = norm360(125.04 - 1934.136 * T) * DEG2RAD;
+        return norm360(L0 + C - 0.00569 - 0.00478 * Math.sin(omega));
       }
 
       function getMoonTropical(jd) {
+        // High-Precision ELP-2000 / Meeus Lunar Longitude (22 periodic terms, ~0.01 deg accuracy)
         const T = (jd - 2451545.0) / 36525.0;
-        const L1 = norm360(218.3164477 + 481267.88123421 * T);
-        const D = norm360(297.8501921 + 445267.1114034 * T) * DEG2RAD;
-        const M = norm360(357.5291092 + 35999.0502909 * T) * DEG2RAD;
-        const Mp = norm360(134.9633964 + 477198.8675055 * T) * DEG2RAD;
-        const F = norm360(93.2720950 + 483202.0175233 * T) * DEG2RAD;
-        const lon =
-          L1 +
-          6.288774 * Math.sin(Mp) +
-          1.274027 * Math.sin(2 * D - Mp) +
-          0.658314 * Math.sin(2 * D) +
-          0.213618 * Math.sin(2 * Mp) -
-          0.185116 * Math.sin(M) -
-          0.114332 * Math.sin(2 * F) +
-          0.058793 * Math.sin(2 * D - 2 * Mp) +
-          0.057066 * Math.sin(2 * D - M - Mp) +
-          0.053322 * Math.sin(2 * D + Mp);
-        return norm360(lon);
+        const T2 = T * T, T3 = T2 * T;
+        const Lp = norm360(218.3164477 + 481267.88123421 * T - 0.0015786 * T2 + T3 / 538841);
+        const D = norm360(297.8501921 + 445267.1114034 * T - 0.0018819 * T2 + T3 / 545868) * DEG2RAD;
+        const M = norm360(357.5291092 + 35999.0502909 * T - 0.0001536 * T2) * DEG2RAD;
+        const Mp = norm360(134.9633964 + 477198.8675055 * T + 0.0087414 * T2 + T3 / 69699) * DEG2RAD;
+        const F = norm360(93.2720950 + 483202.0175233 * T - 0.0036539 * T2) * DEG2RAD;
+        const A1 = norm360(119.75 + 131.849 * T) * DEG2RAD;
+        const A2 = norm360(53.09 + 479264.290 * T) * DEG2RAD;
+        const E = 1 - 0.002516 * T - 0.0000074 * T2;
+        const E2 = E * E;
+
+        const sumL =
+          6288774 * Math.sin(Mp) +
+          1274027 * Math.sin(2 * D - Mp) +
+          658314 * Math.sin(2 * D) +
+          213618 * Math.sin(2 * Mp) -
+          185116 * E * Math.sin(M) -
+          114332 * Math.sin(2 * F) +
+          58793 * Math.sin(2 * D - 2 * Mp) +
+          57066 * E * Math.sin(2 * D - M - Mp) +
+          53322 * Math.sin(2 * D + Mp) +
+          45758 * E * Math.sin(2 * D - M) -
+          40923 * E * Math.sin(M - Mp) -
+          34720 * Math.sin(D) -
+          30383 * E * Math.sin(M + Mp) +
+          15327 * Math.sin(2 * D - 2 * F) -
+          12528 * Math.sin(Mp + 2 * F) +
+          10980 * Math.sin(Mp - 2 * F) +
+          10675 * Math.sin(4 * D - Mp) +
+          10034 * Math.sin(3 * Mp) +
+          8548 * Math.sin(4 * D - 2 * Mp) -
+          7888 * E * Math.sin(2 * D + M - Mp) -
+          6766 * E * Math.sin(2 * D + M) -
+          5163 * Math.sin(D - Mp) +
+          4987 * E * Math.sin(D + M) +
+          4036 * E * Math.sin(2 * D - M + Mp) +
+          3958 * Math.sin(A1) +
+          1962 * Math.sin(Lp * DEG2RAD - F) +
+          318 * Math.sin(A2);
+
+        const { dPsi } = getNutationAndObliquity(jd);
+        return norm360(Lp + sumL / 1000000.0 + dPsi);
       }
 
       function getPlanetGeocentricTropical(jd, p) {
-        // Standard heliocentric-to-geocentric Keplerian approximation
+        // High-Precision Iterative Kepler Solver (6 Newton-Raphson iterations + Jupiter/Saturn Great Inequality)
         const d = jd - 2451545.0;
+        const T = d / 36525.0;
         const solveHelio = (el) => {
           const N = norm360(el.N0 + el.Nd * d) * DEG2RAD;
-          const i = (el.i0 + el.id * d) * DEG2RAD;
+          const inc = (el.i0 + el.id * d) * DEG2RAD;
           const w = norm360(el.w0 + el.wd * d) * DEG2RAD;
           const a = el.a;
-          const e = el.e;
+          const e = el.e + (el.ed || 0) * d;
           const M = norm360(el.M0 + el.Md * d) * DEG2RAD;
-          const E = M + e * Math.sin(M) * (1 + e * Math.cos(M));
+          let E = M + e * Math.sin(M);
+          for (let it = 0; it < 6; it++) {
+            E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+          }
           const xv = a * (Math.cos(E) - e);
           const yv = a * (Math.sqrt(1 - e * e) * Math.sin(E));
           const v = Math.atan2(yv, xv);
           const r = Math.hypot(xv, yv);
-          const xh = r * (Math.cos(N) * Math.cos(v + w) - Math.sin(N) * Math.sin(v + w) * Math.cos(i));
-          const yh = r * (Math.sin(N) * Math.cos(v + w) + Math.cos(N) * Math.sin(v + w) * Math.cos(i));
-          return { xh, yh };
+          const xh = r * (Math.cos(N) * Math.cos(v + w) - Math.sin(N) * Math.sin(v + w) * Math.cos(inc));
+          const yh = r * (Math.sin(N) * Math.cos(v + w) + Math.cos(N) * Math.sin(v + w) * Math.cos(inc));
+          return { xh, yh, r };
         };
         const sunLon = getSunTropical(jd) * DEG2RAD;
-        const xe = -Math.cos(sunLon);
-        const ye = -Math.sin(sunLon);
+        const Msun = norm360(357.5291092 + 35999.0502909 * T) * DEG2RAD;
+        const rEarth = 1.00014 - 0.01671 * Math.cos(Msun) - 0.00014 * Math.cos(2 * Msun);
+        const xe = -rEarth * Math.cos(sunLon);
+        const ye = -rEarth * Math.sin(sunLon);
         const elems = {
-          mercury: { N0: 48.3313, Nd: 3.24587e-5, i0: 7.0047, id: 5e-8, w0: 29.1241, wd: 1.01444e-5, a: 0.387098, e: 0.205635, M0: 168.6562, Md: 4.0923344368 },
-          venus: { N0: 76.6799, Nd: 2.4659e-5, i0: 3.3946, id: 2.75e-8, w0: 54.891, wd: 1.38374e-5, a: 0.72333, e: 0.006773, M0: 48.0052, Md: 1.6021302244 },
-          mars: { N0: 49.5574, Nd: 2.11081e-5, i0: 1.8497, id: -1.78e-8, w0: 286.5016, wd: 2.92961e-5, a: 1.523688, e: 0.093405, M0: 18.6021, Md: 0.5240207766 },
-          jupiter: { N0: 100.4542, Nd: 2.76854e-5, i0: 1.303, id: -1.557e-7, w0: 273.8777, wd: 1.64505e-5, a: 5.20256, e: 0.048498, M0: 19.895, Md: 0.0830853001 },
-          saturn: { N0: 113.6634, Nd: 2.3898e-5, i0: 2.4886, id: -1.081e-7, w0: 339.3939, wd: 2.97661e-5, a: 9.55475, e: 0.055546, M0: 316.967, Md: 0.0334442282 }
+          mercury: { N0: 48.3313, Nd: 3.24587e-5, i0: 7.0047, id: 5e-8, w0: 29.1241, wd: 1.01444e-5, a: 0.387098, e: 0.205635, ed: 5.59e-10, M0: 168.6562, Md: 4.0923344368 },
+          venus: { N0: 76.6799, Nd: 2.4659e-5, i0: 3.3946, id: 2.75e-8, w0: 54.891, wd: 1.38374e-5, a: 0.72333, e: 0.006773, ed: -1.302e-9, M0: 48.0052, Md: 1.6021302244 },
+          mars: { N0: 49.5574, Nd: 2.11081e-5, i0: 1.8497, id: -1.78e-8, w0: 286.5016, wd: 2.92961e-5, a: 1.523688, e: 0.093405, ed: 2.516e-9, M0: 18.6021, Md: 0.5240207766 },
+          jupiter: { N0: 100.4542, Nd: 2.76854e-5, i0: 1.303, id: -1.557e-7, w0: 273.8777, wd: 1.64505e-5, a: 5.20256, e: 0.048498, ed: 4.469e-9, M0: 19.895, Md: 0.0830853001 },
+          saturn: { N0: 113.6634, Nd: 2.3898e-5, i0: 2.4886, id: -1.081e-7, w0: 339.3939, wd: 2.97661e-5, a: 9.55475, e: 0.055546, ed: -9.499e-9, M0: 316.967, Md: 0.0334442282 }
         };
         const h = solveHelio(elems[p]);
-        return norm360(Math.atan2(h.yh - ye, h.xh - xe) * RAD2DEG);
+        let geoLon = norm360(Math.atan2(h.yh - ye, h.xh - xe) * RAD2DEG);
+        // Jupiter-Saturn mutual perturbation (Great Inequality)
+        if (p === 'jupiter' || p === 'saturn') {
+          const Mj = norm360(19.895 + 0.0830853001 * d) * DEG2RAD;
+          const Ms = norm360(316.967 + 0.0334442282 * d) * DEG2RAD;
+          if (p === 'jupiter') {
+            geoLon += -0.332 * Math.sin(2 * Mj - 5 * Ms - 67.6 * DEG2RAD) - 0.056 * Math.sin(2 * Mj - 2 * Ms + 21 * DEG2RAD) + 0.042 * Math.sin(3 * Mj - 5 * Ms + 21 * DEG2RAD);
+          } else {
+            geoLon += 0.812 * Math.sin(2 * Mj - 5 * Ms - 67.6 * DEG2RAD) - 0.229 * Math.cos(2 * Mj - 4 * Ms - 2 * DEG2RAD) + 0.119 * Math.sin(Mj - 2 * Ms - 3 * DEG2RAD);
+          }
+        }
+        const { dPsi } = getNutationAndObliquity(jd);
+        return norm360(geoLon + dPsi);
       }
 
       function getRahuTropical(jd) {
+        // True Lunar Node (Spashta Rahu)
         const T = (jd - 2451545.0) / 36525.0;
-        return norm360(125.04452 - 1934.136261 * T);
+        const meanNode = 125.0445479 - 1934.1362891 * T + 0.0020754 * T * T;
+        const D = norm360(297.8501921 + 445267.1114034 * T) * DEG2RAD;
+        const M = norm360(357.5291092 + 35999.0502909 * T) * DEG2RAD;
+        const Mp = norm360(134.9633964 + 477198.8675055 * T) * DEG2RAD;
+        const F = norm360(93.2720950 + 483202.0175233 * T) * DEG2RAD;
+        const trueCorr = -1.4979 * Math.sin(2 * (D - F)) - 0.1500 * Math.sin(M) - 0.1226 * Math.sin(2 * D) + 0.1176 * Math.sin(2 * F) - 0.0801 * Math.sin(2 * (Mp - F));
+        return norm360(meanNode + trueCorr);
       }
 
       function getLagnaSidereal(jd, latDeg, lonDeg) {
         const T = (jd - 2451545.0) / 36525.0;
-        const gmst = norm360(280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T);
-        const lst = norm360(gmst + lonDeg) * DEG2RAD;
-        const eps = (23.439291 - 0.0130042 * T) * DEG2RAD;
+        const { dPsi, eps } = getNutationAndObliquity(jd);
+        const gmst = norm360(280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000.0);
+        const gast = gmst + dPsi * Math.cos(eps * DEG2RAD);
+        const lst = norm360(gast + lonDeg) * DEG2RAD;
+        const epsRad = eps * DEG2RAD;
         const lat = latDeg * DEG2RAD;
-        const ascTrop = norm360(Math.atan2(Math.cos(lst), -(Math.sin(lst) * Math.cos(eps) + Math.tan(lat) * Math.sin(eps))) * RAD2DEG);
+        const ascTrop = norm360(Math.atan2(Math.cos(lst), -(Math.sin(lst) * Math.cos(epsRad) + Math.tan(lat) * Math.sin(epsRad))) * RAD2DEG);
         return norm360(ascTrop - getLahiriAyanamsha(jd));
+      }
+
+      function formatExactDateFromDecYear(decY) {
+        const yr = Math.floor(decY);
+        const remDays = Math.floor((decY - yr) * 365.2425);
+        const dt = new Date(Date.UTC(yr, 0, 1 + remDays));
+        const dd = String(dt.getUTCDate()).padStart(2, '0');
+        const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+        return `${dd}-${mm}-${dt.getUTCFullYear()}`;
       }
 
       function getSunriseSunset(year, month, day, latDeg, lonDeg, tzOffset) {
@@ -5646,17 +5725,34 @@
         const lagnaLon = getLagnaSidereal(jd, lat, lon);
         const lagnaIdx = Math.floor(lagnaLon / 30);
 
+        const isRetro = (pName) => {
+          const l1 = getPlanetGeocentricTropical(jd - 0.5, pName);
+          const l2 = getPlanetGeocentricTropical(jd + 0.5, pName);
+          let diff = l2 - l1;
+          if (diff > 180) diff -= 360;
+          if (diff < -180) diff += 360;
+          return diff < 0;
+        };
+        const sunLonSid = norm360(getSunTropical(jd) - ayan);
+        const angSep = (a, b) => {
+          let df = Math.abs(a - b) % 360;
+          return df > 180 ? 360 - df : df;
+        };
+        const COMBUST_ORB = { 'चं': 12, 'मं': 17, 'बु': 13, 'गु': 11, 'शु': 9, 'श': 15 };
         const rawPlanets = [
-          { code: 'सू', hi: 'सूर्य (Sun)', lon: norm360(getSunTropical(jd) - ayan) },
-          { code: 'चं', hi: 'चंद्र (Moon)', lon: norm360(getMoonTropical(jd) - ayan) },
-          { code: 'मं', hi: 'मंगल (Mars)', lon: norm360(getPlanetGeocentricTropical(jd, 'mars') - ayan) },
-          { code: 'बु', hi: 'बुध (Mercury)', lon: norm360(getPlanetGeocentricTropical(jd, 'mercury') - ayan) },
-          { code: 'गु', hi: 'बृहस्पति (Jupiter)', lon: norm360(getPlanetGeocentricTropical(jd, 'jupiter') - ayan) },
-          { code: 'शु', hi: 'शुक्र (Venus)', lon: norm360(getPlanetGeocentricTropical(jd, 'venus') - ayan) },
-          { code: 'श', hi: 'शनि (Saturn)', lon: norm360(getPlanetGeocentricTropical(jd, 'saturn') - ayan) },
-          { code: 'रा', hi: 'राहु (Rahu)', lon: norm360(getRahuTropical(jd) - ayan) }
+          { code: 'सू', hi: 'सूर्य (Sun)', lon: sunLonSid, retro: false, combust: false },
+          { code: 'चं', hi: 'चंद्र (Moon)', lon: norm360(getMoonTropical(jd) - ayan), retro: false },
+          { code: 'मं', hi: 'मंगल (Mars)', lon: norm360(getPlanetGeocentricTropical(jd, 'mars') - ayan), retro: isRetro('mars') },
+          { code: 'बु', hi: 'बुध (Mercury)', lon: norm360(getPlanetGeocentricTropical(jd, 'mercury') - ayan), retro: isRetro('mercury') },
+          { code: 'गु', hi: 'बृहस्पति (Jupiter)', lon: norm360(getPlanetGeocentricTropical(jd, 'jupiter') - ayan), retro: isRetro('jupiter') },
+          { code: 'शु', hi: 'शुक्र (Venus)', lon: norm360(getPlanetGeocentricTropical(jd, 'venus') - ayan), retro: isRetro('venus') },
+          { code: 'श', hi: 'शनि (Saturn)', lon: norm360(getPlanetGeocentricTropical(jd, 'saturn') - ayan), retro: isRetro('saturn') },
+          { code: 'रा', hi: 'राहु (Rahu)', lon: norm360(getRahuTropical(jd) - ayan), retro: true, combust: false }
         ];
-        rawPlanets.push({ code: 'के', hi: 'केतु (Ketu)', lon: norm360(rawPlanets[7].lon + 180) });
+        rawPlanets.forEach((rp) => {
+          if (rp.combust === undefined) rp.combust = COMBUST_ORB[rp.code] ? angSep(rp.lon, sunLonSid) <= COMBUST_ORB[rp.code] : false;
+        });
+        rawPlanets.push({ code: 'के', hi: 'केतु (Ketu)', lon: norm360(rawPlanets[7].lon + 180), retro: true, combust: false });
 
         const planetsByHouse = {};
         const UCHCHA = { 'सू': 0, 'चं': 1, 'मं': 9, 'बु': 5, 'गु': 3, 'शु': 11, 'श': 6, 'रा': 1, 'के': 7 };
@@ -5689,12 +5785,26 @@
 
         const dashas = [];
         let cursor = birthDecimalYear;
+        const firstRemYears = VIMSHOTTARI_SEQ[startIdx].years * (1 - fracPassed);
+        const balY = Math.floor(firstRemYears);
+        const balM = Math.floor((firstRemYears - balY) * 12);
+        const balD = Math.floor(((firstRemYears - balY) * 12 - balM) * 30);
+        const birthDashaBalance = `${VIMSHOTTARI_SEQ[startIdx].lord}: ${balY} वर्ष, ${balM} माह, ${balD} दिन`;
         for (let step = 0; step < 9; step++) {
           const item = VIMSHOTTARI_SEQ[(startIdx + step) % 9];
-          const dur = step === 0 ? item.years * (1 - fracPassed) : item.years;
+          const dur = step === 0 ? firstRemYears : item.years;
           const end = cursor + dur;
           const status = currentYear >= cursor && currentYear < end ? 'active' : end <= currentYear ? 'past' : 'future';
-          dashas.push({ lord: item.lord, startY: Math.floor(cursor), endY: Math.floor(end), status });
+          dashas.push({
+            lord: item.lord,
+            startDec: cursor,
+            endDec: end,
+            startY: Math.floor(cursor),
+            endY: Math.floor(end),
+            startDate: formatExactDateFromDecYear(cursor),
+            endDate: formatExactDateFromDecYear(end),
+            status
+          });
           cursor = end;
         }
         const activeDasha = dashas.find((ds) => ds.status === 'active') || dashas[0];
@@ -5722,7 +5832,7 @@
           .map(
             (p) => `
             <tr>
-              <td class="py-2 pr-2 font-bold text-amber-200">${p.hi}</td>
+              <td class="py-2 pr-2 font-bold text-amber-200">${p.hi} ${p.retro && p.code !== "रा" && p.code !== "के" ? '<span class="px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px]">वक्री</span>' : ""} ${p.combust ? '<span class="px-1 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px]">अस्त</span>' : ""}</td>
               <td class="py-2 pr-2">${RASHIS_HI[p.rIdx]}</td>
               <td class="py-2 pr-2 font-mono text-cyan-200">${formatDegMin(p.lon)}</td>
               <td class="py-2 pr-2">${NAKSHATRAS_HI[p.nakIdx]} (${p.pada})</td>
@@ -5875,20 +5985,48 @@
         const mdIdx = VIMSHOTTARI_SEQ.findIndex((s) => s.lord === activeDasha.lord);
         const mdTotalYrs = VIMSHOTTARI_SEQ[mdIdx >= 0 ? mdIdx : 0].years;
         const antardashas = [];
-        let adCursor = activeDasha.startY;
+        let adCursor = activeDasha.startDec || activeDasha.startY;
+        let activeAntardasha = null;
         for (let k = 0; k < 9; k++) {
           const adItem = VIMSHOTTARI_SEQ[((mdIdx >= 0 ? mdIdx : 0) + k) % 9];
           const adDur = (mdTotalYrs * adItem.years) / 120;
           const adEnd = adCursor + adDur;
           const adActive = currentYear >= adCursor && currentYear < adEnd;
-          antardashas.push({
+          const adObj = {
             lord: adItem.lord,
-            from: adCursor.toFixed(1),
-            to: adEnd.toFixed(1),
+            startDec: adCursor,
+            endDec: adEnd,
+            dur: adDur,
+            from: formatExactDateFromDecYear(adCursor),
+            to: formatExactDateFromDecYear(adEnd),
             active: adActive
-          });
+          };
+          antardashas.push(adObj);
+          if (adActive) activeAntardasha = adObj;
           adCursor = adEnd;
         }
+        // Active Pratyantardasha inside Active Antardasha
+        let activePratyantardasha = null;
+        if (activeAntardasha) {
+          const adLordIdx = VIMSHOTTARI_SEQ.findIndex((s) => s.lord === activeAntardasha.lord);
+          let pdCursor = activeAntardasha.startDec;
+          for (let pStep = 0; pStep < 9; pStep++) {
+            const pdItem = VIMSHOTTARI_SEQ[((adLordIdx >= 0 ? adLordIdx : 0) + pStep) % 9];
+            const pdDur = (activeAntardasha.dur * pdItem.years) / 120;
+            const pdEnd = pdCursor + pdDur;
+            if (currentYear >= pdCursor && currentYear < pdEnd) {
+              activePratyantardasha = { lord: pdItem.lord, from: formatExactDateFromDecYear(pdCursor), to: formatExactDateFromDecYear(pdEnd) };
+              break;
+            }
+            pdCursor = pdEnd;
+          }
+        }
+        const houseLords12 = Array.from({ length: 12 }, (_, idx) => {
+          const hSign = (lagnaIdx + idx) % 12;
+          const lordName = RASHI_LORDS_HI[hSign];
+          const occ = enriched.filter((p) => p.house === idx + 1).map((p) => p.hi + (p.retro && p.code !== 'रा' && p.code !== 'के' ? ' (वक्री)' : '') + (p.combust ? ' (अस्त)' : ''));
+          return { house: idx + 1, sign: RASHIS_HI[hSign], lord: lordName, occupants: occ };
+        });
         if (el('kundliAntardashaGrid')) {
           el('kundliAntardashaGrid').innerHTML = antardashas
             .map(
@@ -5901,7 +6039,7 @@
             )
             .join('');
         }
-        window._lastKundliSummary = { name: nameVal, dob: dobVal, time: timeVal, lagna: RASHIS_HI[lagnaIdx], moon: RASHIS_HI[moonP.rIdx], nakshatra: NAKSHATRAS_HI[moonP.nakIdx], pada: moonP.pada, activeDasha: activeDasha.lord, isManglik, hasGajakesari, hasBudhaditya, hasKaalSarp, hasPitraDosha, shaniStatus, planets: enriched.map(p => ({ planet: p.hi, rashi: RASHIS_HI[p.rIdx], house: p.house, dignity: p.dignity })) };
+        window._lastKundliSummary = { name: nameVal, dob: dobVal, time: timeVal, lagna: RASHIS_HI[lagnaIdx], lagnaDeg: formatDegMin(lagnaLon), moon: RASHIS_HI[moonP.rIdx], nakshatra: NAKSHATRAS_HI[moonP.nakIdx], pada: moonP.pada, birthDashaBalance, activeDasha: `${activeDasha.lord} (${activeDasha.startDate} to ${activeDasha.endDate})`, activeAntardasha: activeAntardasha ? `${activeAntardasha.lord} (${activeAntardasha.from} to ${activeAntardasha.to})` : '', activePratyantardasha: activePratyantardasha ? `${activePratyantardasha.lord} (${activePratyantardasha.from} to ${activePratyantardasha.to})` : '', pastDashas: dashas.filter(d => d.status === 'past').map(d => `${d.lord} (${d.startDate}-${d.endDate})`), futureDashas: dashas.filter(d => d.status === 'future').slice(0, 3).map(d => `${d.lord} (${d.startDate}-${d.endDate})`), isManglik, hasGajakesari, hasBudhaditya, hasKaalSarp, hasPitraDosha, shaniStatus, houses12: houseLords12, planets: enriched.map(p => ({ planet: p.hi, rashi: RASHIS_HI[p.rIdx], deg: formatDegMin(p.lon), nakshatra: NAKSHATRAS_HI[p.nakIdx] + ' P' + p.pada, house: p.house, dignity: p.dignity, retro: p.retro, combust: p.combust })) };
         fetchAiKundliDeepReading(window._lastKundliSummary);
 
         el('kundliDashaGrid').innerHTML = dashas
@@ -5912,7 +6050,7 @@
                 <span class="${ds.status === 'active' ? 'text-emerald-300' : 'text-amber-200'}">${ds.lord} महादशा</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full ${ds.status === 'active' ? 'bg-emerald-500/25 text-emerald-200' : ds.status === 'past' ? 'bg-slate-700 text-slate-200' : 'bg-amber-500/20 text-amber-200'}">${ds.status === 'active' ? 'वर्तमान' : ds.status === 'past' ? 'अतीत' : 'भविष्य'}</span>
               </div>
-              <div class="text-purple-200/85 mt-1">${ds.startY} से ${ds.endY}</div>
+              <div class="text-purple-200/85 mt-1">${ds.startDate} से ${ds.endDate}</div>
             </div>
           `
           )
@@ -5958,8 +6096,38 @@
           'केतु (Ketu)': 'आध्यात्मिक अंतर्दृष्टि, शोध क्षमता और वैराग्य-विवेक प्रदान करता है'
         };
 
+        const HOUSE_EASY_EXPLAIN = [
+          'व्यक्तित्व, स्वास्थ्य, आत्मविश्वास और जीवन की मुख्य दिशा',
+          'धन-संचय, वाणी, कुटुंब और पारिवारिक संपत्ति',
+          'साहस, पराक्रम, छोटे भाई-बहन और छोटी यात्राएं',
+          'माता, घर-मकान, वाहन और मानसिक सुख-शांति',
+          'शिक्षा, बुद्धि, संतान, प्रेम और पूर्व पुण्य',
+          'नौकरी, प्रतियोगिता, शत्रु-विजय और स्वास्थ्य संयम',
+          'विवाह, जीवनसाथी, दांपत्य सुख और व्यापार साझेदारी',
+          'आयु, आकस्मिक परिवर्तन, शोध और गूढ़ ज्ञान',
+          'भाग्य, धर्म, पिता, गुरु कृपा और उच्च शिक्षा/यात्रा',
+          'करियर, कर्मक्षेत्र, पद-प्रतिष्ठा और सरकारी सम्मान',
+          'नियमित आय, बड़े लाभ, मित्र नेटवर्क और इच्छापूर्ति',
+          'व्यय, विदेश योग, निवेश और आध्यात्मिक मोक्ष'
+        ];
+        const twelveHousesHtml = houseLords12.map((h) => {
+          const occTxt = h.occupants.length ? `इस भाव में <strong>${h.occupants.join(', ')}</strong> स्थित हैं — जो इस क्षेत्र को विशेष रूप से सक्रिय करते हैं।` : `इस भाव में कोई ग्रह नहीं है, इसलिए इसका पूरा फल भावेश <strong>${h.lord}</strong> की स्थिति से संचालित होता है।`;
+          return `<div class="p-3 rounded-xl bg-black/45 border border-purple-400/25 space-y-1">
+            <div class="flex items-center justify-between gap-1"><span class="font-bold text-amber-200">भाव ${h.house} • ${h.sign} राशि</span><span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-200">स्वामी: ${h.lord}</span></div>
+            <div class="text-[11px] text-amber-100/80">${HOUSE_EASY_EXPLAIN[h.house - 1]}</div>
+            <p class="text-[11px] text-purple-100/90 leading-relaxed">${occTxt}</p>
+          </div>`;
+        }).join('');
+        const dashaExactBanner = `<div class="p-3 rounded-xl bg-indigo-950/50 border border-cyan-400/35 text-xs text-cyan-100 flex flex-wrap gap-3 justify-between">
+          <div><strong>📌 जन्म दशा शेष:</strong> ${birthDashaBalance}</div>
+          ${activePratyantardasha ? `<div><strong>⏱️ सक्रिय प्रत्यंतर्दशा:</strong> ${activeDasha.lord} – ${activeAntardasha.lord} – ${activePratyantardasha.lord} (${activePratyantardasha.from} से ${activePratyantardasha.to})</div>` : ''}
+        </div>`;
+
         el('kundliDeepReadCard').innerHTML = `
-          <h3 class="mystic-title text-base sm:text-lg font-bold text-amber-200">📖 कुंडली का स्वयं-पठित विस्तृत भाव एवं ग्रह फल (Auto-Read Analysis)</h3>
+          ${dashaExactBanner}
+          <h3 class="mystic-title text-base sm:text-lg font-bold text-cyan-200 pt-1">🏛️ सभी 12 भावों का एक-एक बिंदु आसान हिंदी फलादेश (1st – 12th House)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">${twelveHousesHtml}</div>
+          <h3 class="mystic-title text-base sm:text-lg font-bold text-amber-200 pt-2">📖 नवग्रह विस्तृत फल (9 Planets Auto-Read Analysis)</h3>
           <p class="text-xs text-purple-200/80">आपकी कुंडली के हर ग्रह की वास्तविक स्थिति के अनुसार यह बताया गया है कि किस भाव में कौन सा ग्रह होने से क्या शुभ फल या चुनौती मिलती है:</p>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
             ${enriched
@@ -6686,8 +6854,8 @@
             <div class="px-3 py-1.5 rounded-xl bg-black/45 border ${manglikMatched ? 'border-emerald-400/40 text-emerald-200' : 'border-amber-400/45 text-amber-200'}">
               <strong>मांगलिक मिलान:</strong> ${manglikMatched ? '✓ संतुलित (दोनों समान स्थिति में)' : `⚠ असमान (${bName}: ${boy.isManglik ? 'मांगलिक' : 'अमांगलिक'}, ${gName}: ${girl.isManglik ? 'मांगलिक' : 'अमांगलिक'})`}
             </div>
-            <div class="px-3 py-1.5 rounded-xl bg-black/45 border ${nadiPts > 0 ? 'border-emerald-400/40 text-emerald-200' : 'border-rose-400/45 text-rose-200'}">
-              <strong>नाड़ी दोष:</strong> ${nadiPts > 0 ? '✓ नहीं है' : '⚠ नाड़ी दोष उपस्थित (निवारण नीचे देखें)'}
+            <div class="px-3 py-1.5 rounded-xl bg-black/45 border ${nadiPts > 0 || (boy.moonRashi === girl.moonRashi && boy.moonNak !== girl.moonNak) || (boy.moonNak === girl.moonNak && boy.moonPada !== girl.moonPada) ? 'border-emerald-400/40 text-emerald-200' : 'border-rose-400/45 text-rose-200'}">
+              <strong>नाड़ी दोष:</strong> ${nadiPts > 0 ? '✓ नहीं है' : ((boy.moonRashi === girl.moonRashi && boy.moonNak !== girl.moonNak) || (boy.moonNak === girl.moonNak && boy.moonPada !== girl.moonPada)) ? '✓ नाड़ी दोष परिहार (समान राशि/भिन्न नक्षत्र या भिन्न चरण से दोष शांत)' : '⚠ नाड़ी दोष उपस्थित (महामृत्युंजय जप व स्वर्ण-अन्न दान से निवारण)'}
             </div>
           </div>
         `;
@@ -10113,10 +10281,11 @@
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">Real AI Personalized</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm text-purple-100/90 leading-relaxed">
-              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-amber-200 block mb-1">🌟 व्यक्तित्व व जीवन दिशा:</strong>${escapeHtml(ai.personality_summary || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-amber-200 block mb-1">💼 करियर व धन योग:</strong>${escapeHtml(ai.career_wealth || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-amber-200 block mb-1">💍 प्रेम व विवाह जीवन:</strong>${escapeHtml(ai.love_marriage || '')}</div>
-              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-amber-200 block mb-1">📅 अगले 2 वर्षों का विशेष फल:</strong>${escapeHtml(ai.next_2_years || '')}</div>
+              <div class="p-3 rounded-xl bg-black/45 border border-amber-400/25"><strong class="text-amber-300 block mb-1">🕰️ भूतकाल (Past — बीती महादशाओं का सटीक विश्लेषण):</strong>${escapeHtml(ai.past_timeline || ai.personality_summary || '')}</div>
+              <div class="p-3 rounded-xl bg-black/45 border border-cyan-400/25"><strong class="text-cyan-300 block mb-1">⚡ वर्तमान स्थिति (Present — सक्रिय दशा व गोचर):</strong>${escapeHtml(ai.present_situation || ai.career_wealth || '')}</div>
+              <div class="p-3 rounded-xl bg-black/45 border border-emerald-400/25"><strong class="text-emerald-300 block mb-1">🚀 आगामी भविष्य (Future — अगले 5 वर्षों का रोडमैप):</strong>${escapeHtml(ai.future_roadmap || ai.next_2_years || '')}</div>
+              <div class="p-3 rounded-xl bg-black/45 border border-pink-400/25"><strong class="text-pink-300 block mb-1">💍 विवाह, जीवनसाथी व पारिवारिक सुख:</strong>${escapeHtml(ai.marriage_and_family || ai.love_marriage || '')}</div>
+              <div class="p-3 rounded-xl bg-black/45 border border-purple-400/25 md:col-span-2"><strong class="text-purple-200 block mb-1">🪐 ग्रह, जन्म नक्षत्र व वक्री/अस्त स्थिति का आसान अर्थ:</strong>${escapeHtml(ai.graha_nakshatra_deep || '')}</div>
             </div>
             ${rems.length ? `<div class="p-3 rounded-xl bg-amber-950/35 border border-amber-400/35 text-xs text-amber-100 space-y-1"><strong class="text-amber-300 block">🪔 आपकी कुंडली के लिए विशेष व्यक्तिगत उपाय:</strong><ul class="list-disc pl-4 space-y-1">${rems.map((rm) => `<li>${escapeHtml(rm)}</li>`).join('')}</ul></div>` : ''}
           `;

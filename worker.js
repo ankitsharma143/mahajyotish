@@ -31,6 +31,16 @@ function extractJson(raw) {
   return a !== -1 && b > a ? s.slice(a, b + 1) : null;
 }
 
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
 async function callGemini(apiKey, preferredModel, payload) {
   const candidates = Array.from(new Set([
     preferredModel,
@@ -106,6 +116,74 @@ export default {
         model,
         timestamp: new Date().toISOString()
       });
+    }
+
+    // 1b. Universal Village / Town / City Search Proxy (India + Global)
+    if (path === '/api/search-place' && request.method === 'GET') {
+      const q = (url.searchParams.get('q') || '').trim();
+      if (q.length < 2) return jsonRes({ results: [] });
+      const results = [];
+      const seen = new Set();
+      const pushUnique = (display, lat, lon, tz = 5.5) => {
+        const key = `${Number(lat).toFixed(2)},${Number(lon).toFixed(2)}`;
+        if (!display || Number.isNaN(Number(lat)) || Number.isNaN(Number(lon)) || seen.has(key)) return;
+        seen.add(key);
+        results.push({ display: display.slice(0, 88), lat: Number(lat).toFixed(4), lon: Number(lon).toFixed(4), tz });
+      };
+
+      try {
+        const omRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=12&language=en&format=json`, {
+          signal: AbortSignal.timeout(15000)
+        });
+        if (omRes.ok) {
+          const omJson = await omRes.json();
+          const list = Array.isArray(omJson?.results) ? omJson.results : [];
+          list.sort((a, b) => (b.country_code === 'IN' ? 1 : 0) - (a.country_code === 'IN' ? 1 : 0));
+          for (const r of list) {
+            const parts = [r.name, r.admin2, r.admin1, r.country].filter(Boolean);
+            const tz = r.country_code === 'IN' ? 5.5 : Math.round((Number(r.longitude || 0) / 15) * 2) / 2;
+            pushUnique(parts.join(', '), r.latitude, r.longitude, tz);
+          }
+        }
+      } catch (_) {}
+
+      if (results.length < 6) {
+        try {
+          const nomRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(q + ', India')}`, {
+            headers: { 'Accept': 'application/json', 'User-Agent': 'MAHAJYOTISH-App/1.0' },
+            signal: AbortSignal.timeout(7000)
+          });
+          if (nomRes.ok) {
+            const rows = await nomRes.json();
+            if (Array.isArray(rows)) {
+              for (const r of rows) {
+                pushUnique(r.display_name, r.lat, r.lon, 5.5);
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (results.length < 4) {
+        try {
+          const phRes = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`, {
+            signal: AbortSignal.timeout(6000)
+          });
+          if (phRes.ok) {
+            const phJson = await phRes.json();
+            const feats = Array.isArray(phJson?.features) ? phJson.features : [];
+            for (const f of feats) {
+              const p = f.properties || {};
+              const coords = f.geometry?.coordinates || [];
+              const parts = [p.name, p.county || p.city, p.state, p.country].filter(Boolean);
+              const tz = p.countrycode === 'IN' ? 5.5 : Math.round((Number(coords[0] || 0) / 15) * 2) / 2;
+              pushUnique(parts.join(', '), coords[1], coords[0], tz);
+            }
+          }
+        } catch (_) {}
+      }
+
+      return jsonRes({ results: results.slice(0, 15) });
     }
 
     // 2. Palm Analysis
@@ -222,7 +300,7 @@ Ensure "detected_features" is an object containing: hand_analyzed, palm_type, fi
         if (!question) return jsonRes({ error: 'MISSING_QUESTION', message: 'Question is required.' }, 400);
 
         const targetLang = language === 'en' ? 'English' : 'Hindi (सरल बोलचाल की हिंदी)';
-        const prompt = `Answer concisely (3-5 sentences for voice playback) in ${targetLang} based ONLY on this palm report JSON: ${JSON.stringify(report || {}).slice(0, 12000)}\nQuestion: ${question}`;
+        const prompt = `Answer concisely (3-5 sentences for voice playback) in ${targetLang} based ONLY on this report JSON: ${JSON.stringify(report || {}).slice(0, 12000)}\nQuestion: ${question}`;
 
         const result = await callGemini(apiKey, model, {
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -238,7 +316,280 @@ Ensure "detected_features" is an object containing: hand_analyzed, palm_type, fi
       }
     }
 
-    // 5. Serve all static frontend files (index.html, manifest.json, sw.js, icons)
+    // 5. Personalized AI Jyotish (Kundli, Name Correction, Marriage Prediction)
+    if (path === '/api/ai-jyotish' && request.method === 'POST') {
+      try {
+        if (!apiKey) {
+          return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY in Cloudflare Worker Variables and Secrets.' }, 503);
+        }
+        const { mode = 'kundli', data = {}, language = 'hi' } = await request.json().catch(() => ({}));
+        const targetLang = language === 'en' ? 'English' : 'Hindi (स्पष्ट, व्यक्तिगत और पारंपरिक वैदिक ज्योतिष हिंदी)';
+        let prompt = '';
+
+        if (mode === 'kundli') {
+          prompt = `You are a Master Indian Vedic Astrologer (Parashari + Lal Kitab). Generate a 100% UNIQUE, deeply detailed, crystal-clear point-by-point Janam Kundli reading in ${targetLang} strictly derived from this person's exact astronomical chart (NEVER repeat generic filler; cite their exact Lagna, Moon Sign, Nakshatra+Pada, Retrograde/Combust planets, 12 House Lords, and exact Mahadasha/Antardasha/Pratyantardasha dates):
+${JSON.stringify(data).slice(0, 7500)}
+Return ONLY valid JSON with keys:
+- past_timeline (4-5 sentences explaining key past phases & turning points strictly using their completed Mahadasha years from birth till today)
+- present_situation (4-5 sentences explaining what is happening right now using their active Mahadasha, Antardasha, Pratyantardasha & live Saturn/Jupiter Gochar)
+- future_roadmap (4-5 sentences explaining the next 5 years for career, money, property & major milestones with specific upcoming years)
+- marriage_and_family (4 sentences covering 7th house sign, 7th lord placement, Venus/Jupiter, Manglik status, marriage timing & married life harmony)
+- graha_nakshatra_deep (4 sentences explaining their Birth Nakshatra + Pada, any Retrograde/Combust or Exalted/Debilitated planets, and active Yogas/Doshas in simple Hindi)
+- tailored_remedies (array of 5 specific, practical Vedic & Lal Kitab remedies strictly for THIS chart's weak/debilitated/afflicted planets & active dasha)`;
+        } else if (mode === 'name_correction') {
+          prompt = `You are an Expert Chaldean & Vedic Numerologist. Give a UNIQUE, personalized Name Correction & Vibration Analysis in ${targetLang} for:
+${JSON.stringify(data).slice(0, 4000)}
+Return ONLY valid JSON with keys:
+- name_diagnosis (3 sentences analyzing exact spelling, compound number, Mulank & Bhagyank interaction)
+- lucky_spelling_tip (2-3 sentences on the best single spelling tweak and why)
+- career_finance_impact (2-3 sentences)
+- signature_and_remedy (2-3 sentences: signature angle, lucky color/day, mobile/business number tip)`;
+        } else if (mode === 'marriage') {
+          prompt = `You are an Expert Vedic Marriage & Relationship Astrologer. Generate a UNIQUE, detailed Marriage & Future Spouse Prediction in ${targetLang} based strictly on this person's birth details & 7th house / Navamsha / Venus / Jupiter data:
+${JSON.stringify(data).slice(0, 5000)}
+Return ONLY valid JSON with keys:
+- marriage_timing (detailed prediction of when marriage is most likely: exact favorable years, age range & auspicious months)
+- marriage_type (Love Marriage vs Arranged Marriage vs Love-cum-Arranged with percentage and astrological reason)
+- spouse_nature (4 sentences about future life partner's temperament, values, loyalty & family attitude)
+- spouse_appearance (3-4 sentences describing realistic Indian facial features, complexion tone, eyes, smile, hair, build & aura based on 7th sign & Venus/Jupiter)
+- spouse_career (2-3 sentences about likely profession/field & financial stability)
+- spouse_direction_initials (likely direction from birthplace, zodiac signs, and 3-5 probable first letters of partner's name)
+- first_meeting_story (3 sentences on how and where you are likely to meet)
+- marriage_remedies (array of 3 practical Vedic remedies for timely & happy marriage)
+- sketch_prompt_en (a concise, photorealistic hand-drawn graphite pencil portrait prompt in English describing the future spouse's face based on gender=${data.spouseGender || 'female'}, age=${data.spouseAge || '25'}, Indian ethnicity, eyes, smile, hairstyle, traditional-modern attire, soft shading on cream sketch paper — strictly no text, no watermark)`;
+        } else if (mode === 'tarot') {
+          prompt = `You are a Master Vedic & Intuitive Tarot Reader. Provide a UNIQUE, deeply insightful 3-Card Tarot Reading in ${targetLang} for this user's exact question and drawn cards:
+${JSON.stringify(data).slice(0, 4000)}
+Return ONLY valid JSON with keys:
+- past_card_reading (2-3 sentences on how the Past card shaped their situation)
+- present_card_reading (2-3 sentences on current energies & hidden factors)
+- future_card_reading (3 sentences on upcoming outcome & timeline)
+- final_guidance (2-3 sentences of clear, empowering practical advice)
+- lucky_affirmation (1 uplifting Hindi/English mantra or affirmation)`;
+        } else {
+          return jsonRes({ error: 'INVALID_MODE', message: 'Unsupported mode.' }, 400);
+        }
+
+        const result = await callGemini(apiKey, model, {
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.72, maxOutputTokens: 3072, responseMimeType: 'application/json' }
+        });
+        if (!result.ok) {
+          return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}: ${result.errTxt.slice(0, 220)}` }, 502);
+        }
+        const jsonStr = extractJson(result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+        if (!jsonStr) return jsonRes({ error: 'INVALID_AI_RESPONSE', message: 'Non-JSON AI response.' }, 502);
+        const parsed = JSON.parse(jsonStr);
+        parsed._meta = { mode: 'real_ai', model: result.usedModel };
+        return jsonRes(parsed);
+      } catch (err) {
+        return jsonRes({ error: 'JYOTISH_AI_FAILED', message: err?.message || 'AI Jyotish failed.' }, 500);
+      }
+    }
+
+    // 6. Real AI Soulmate Pencil Sketch Generator (Fast & 100% Guaranteed)
+    if (path === '/api/marriage-sketch' && request.method === 'POST') {
+      try {
+        const body = await request.json().catch(() => ({}));
+        const promptEn = String(body.promptEn || '').trim() || 'Hand-drawn graphite pencil portrait sketch of a graceful young Indian person smiling warmly, fine charcoal shading, detailed eyes, sketchbook paper, no text';
+        const seed = Math.abs(Number(body.seed) || Math.floor(Math.random() * 999999));
+        const spouseGender = String(body.spouseGender || (promptEn.toLowerCase().includes('man') && !promptEn.toLowerCase().includes('woman') ? 'male' : 'female'));
+
+        // Tier 1: Fast Real AI Diffusion Sketch (Pollinations Flux, 7s timeout)
+        try {
+          const shortPrompt = promptEn.slice(0, 180) + ', graphite pencil portrait sketch on ivory paper, fine charcoal shading, no text';
+          const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(shortPrompt)}?model=flux&width=512&height=640&nologo=true&seed=${seed}`;
+          const pRes = await fetch(pollUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(7000)
+          });
+          if (pRes.ok) {
+            const ctype = pRes.headers.get('content-type') || 'image/jpeg';
+            if (ctype.startsWith('image/')) {
+              const buf = await pRes.arrayBuffer();
+              if (buf.byteLength > 2500) {
+                return jsonRes({
+                  imageDataUrl: `data:${ctype.split(';')[0]};base64,${arrayBufferToBase64(buf)}`,
+                  engine: 'Real AI Flux Sketch'
+                });
+              }
+            }
+          }
+        } catch (_) {}
+
+        // Tier 2: Gemini AI Portrait Illustrator SVG (using working Gemini key, 14s timeout)
+        if (apiKey) {
+          try {
+            const svgPrompt = `Draw a graceful, realistic hand-drawn graphite pencil portrait sketch as a standalone SVG (xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500") of: ${promptEn} (gender=${spouseGender}, variation=${seed % 97}).
+Use warm cream sketchbook paper gradient (#f7f1e3 to #e8dcc4), fine graphite/charcoal paths (#1c1917, #292524, #44403c, #57534e) for hair strands, expressive eyes with iris & catchlight, eyebrows, natural nose, warm smiling lips, jawline shading, neck & Indian attire. NO text or letters inside SVG. Output ONLY raw <svg ...>...</svg>.`;
+            const ep = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+            const gRes = await fetch(ep, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: svgPrompt }] }],
+                generationConfig: { temperature: 0.85, maxOutputTokens: 3500 }
+              }),
+              signal: AbortSignal.timeout(14000)
+            });
+            if (gRes.ok) {
+              const gj = await gRes.json();
+              const rawSvg = gj?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              const a = rawSvg.indexOf('<svg');
+              const b = rawSvg.lastIndexOf('</svg>');
+              if (a !== -1 && b > a) {
+                let cleanSvg = rawSvg.slice(a, b + 6);
+                if (!cleanSvg.includes('xmlns=')) cleanSvg = cleanSvg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                const svgBytes = new TextEncoder().encode(cleanSvg);
+                return jsonRes({
+                  imageDataUrl: `data:image/svg+xml;base64,${arrayBufferToBase64(svgBytes.buffer)}`,
+                  engine: 'Gemini AI Sketch'
+                });
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Tier 3: Guaranteed Seed-Unique Graphite Portrait Sketch (Never fails / never busy)
+        const isFemale = spouseGender !== 'male';
+        const v1 = (seed % 5) - 2; // -2..2 jaw width
+        const v2 = ((seed >> 3) % 5) - 2; // eye spacing
+        const v3 = ((seed >> 6) % 3); // hair/beard style
+        const jawW = 68 + v1 * 3;
+        const eyeY = 212 + (v2 % 2) * 2;
+        const smileCurve = 294 + (seed % 4);
+        const hairFemale = v3 === 0
+          ? `<path d="M116 218 C108 135 142 84 200 82 C258 84 292 135 284 218 C294 278 292 355 276 410 C266 356 266 285 262 230 C254 168 232 136 200 132 C168 136 146 168 138 230 C134 285 134 356 124 410 C108 355 106 278 116 218 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/>`
+          : v3 === 1
+          ? `<path d="M118 224 C112 132 146 80 200 80 C254 80 288 132 282 224 C298 286 306 346 286 392 C272 346 268 278 264 226 C252 158 224 132 200 128 C176 132 148 158 136 226 C132 278 128 346 114 392 C94 346 102 286 118 224 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/>`
+          : `<path d="M120 220 C114 134 148 84 200 84 C252 84 286 134 280 220 C276 268 270 305 264 334 C258 272 260 218 256 184 C246 142 224 128 200 126 C176 128 154 142 144 184 C140 218 142 272 136 334 C130 305 124 268 120 220 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.6"/><circle cx="200" cy="76" r="24" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.5"/>`;
+        const hairMale = v3 === 0
+          ? `<path d="M128 212 C122 142 144 92 200 90 C256 92 278 142 272 212 C266 174 256 146 232 138 C206 132 184 140 162 144 C144 150 134 176 128 212 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.8"/>`
+          : `<path d="M128 210 C120 138 148 86 204 86 C256 88 278 136 272 210 C266 166 250 138 220 132 C188 126 154 136 138 164 Z" fill="url(#hairG)" stroke="#1c1917" stroke-width="1.8"/>`;
+        const facialExtra = isFemale
+          ? `<circle cx="200" cy="${eyeY - 16}" r="3.4" fill="#292524"/><ellipse cx="128" cy="264" rx="4.5" ry="7" fill="none" stroke="#44403c" stroke-width="1.6"/><ellipse cx="272" cy="264" rx="4.5" ry="7" fill="none" stroke="#44403c" stroke-width="1.6"/><path d="M156 358 Q200 398 244 358" fill="none" stroke="#44403c" stroke-width="1.8" stroke-dasharray="3 2"/>`
+          : (v3 !== 2 ? `<path d="M142 264 C144 304 168 334 200 336 C232 334 256 304 258 264 C248 292 228 318 200 320 C172 318 152 292 142 264 Z" fill="#292524" opacity="0.22"/><path d="M174 282 Q200 274 226 282" fill="none" stroke="#292524" stroke-width="2.6" opacity="0.65" stroke-linecap="round"/>` : '');
+
+        const procSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
+          <defs>
+            <radialGradient id="paperG" cx="50%" cy="42%" r="65%"><stop offset="0%" stop-color="#faf5e8"/><stop offset="72%" stop-color="#efe5d1"/><stop offset="100%" stop-color="#dfd0b4"/></radialGradient>
+            <linearGradient id="hairG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#292524"/><stop offset="50%" stop-color="#44403c"/><stop offset="100%" stop-color="#1c1917"/></linearGradient>
+            <linearGradient id="shadeG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#292524" stop-opacity="0.16"/><stop offset="55%" stop-color="#292524" stop-opacity="0.02"/><stop offset="100%" stop-color="#292524" stop-opacity="0.2"/></linearGradient>
+          </defs>
+          <rect width="400" height="500" fill="url(#paperG)"/>
+          <g stroke="#78716c" stroke-width="0.6" opacity="0.22">
+            <line x1="28" y1="54" x2="96" y2="28"/><line x1="305" y1="42" x2="372" y2="88"/><line x1="34" y1="440" x2="108" y2="478"/><line x1="296" y1="466" x2="368" y2="424"/>
+          </g>
+          ${isFemale ? hairFemale : ''}
+          <!-- Shoulders & Traditional Kurta/Dupatta -->
+          <path d="M84 495 C92 418 128 386 168 374 L232 374 C272 386 308 418 316 495 Z" fill="#e7dbc5" stroke="#292524" stroke-width="2.1"/>
+          <path d="M168 374 L200 426 L232 374" fill="none" stroke="#292524" stroke-width="2"/>
+          <path d="M108 495 Q142 426 172 384 M292 495 Q258 426 228 384" fill="none" stroke="#57534e" stroke-width="1.2" opacity="0.55"/>
+          <!-- Neck & Shadow -->
+          <path d="M174 322 L172 378 Q200 392 228 378 L226 322 Z" fill="#efe4cf" stroke="#292524" stroke-width="1.8"/>
+          <path d="M174 326 Q200 348 226 326 L225 344 Q200 356 175 344 Z" fill="#292524" opacity="0.18"/>
+          <!-- Ears -->
+          <path d="M${200 - jawW + 2} 226 C${200 - jawW - 14} 226 ${200 - jawW - 12} 260 ${200 - jawW + 4} 262" fill="#f3ead8" stroke="#292524" stroke-width="1.8"/>
+          <path d="M${200 + jawW - 2} 226 C${200 + jawW + 14} 226 ${200 + jawW + 12} 260 ${200 + jawW - 4} 262" fill="#f3ead8" stroke="#292524" stroke-width="1.8"/>
+          <!-- Face Contour -->
+          <path d="M${200 - jawW} 214 C${200 - jawW} 148 164 122 200 122 C236 122 ${200 + jawW} 148 ${200 + jawW} 214 C${200 + jawW} 274 238 332 200 336 C162 332 ${200 - jawW} 274 ${200 - jawW} 214 Z" fill="#f6efe1" stroke="#1c1917" stroke-width="2.1"/>
+          <path d="M${200 - jawW} 214 C${200 - jawW} 148 164 122 200 122 C236 122 ${200 + jawW} 148 ${200 + jawW} 214 C${200 + jawW} 274 238 332 200 336 C162 332 ${200 - jawW} 274 ${200 - jawW} 214 Z" fill="url(#shadeG)"/>
+          ${!isFemale ? hairMale : ''}
+          <!-- Eyebrows -->
+          <path d="M150 ${eyeY - 14} Q168 ${eyeY - 24} 186 ${eyeY - 15}" fill="none" stroke="#1c1917" stroke-width="${isFemale ? '2.6' : '3.6'}" stroke-linecap="round"/>
+          <path d="M214 ${eyeY - 15} Q232 ${eyeY - 24} 250 ${eyeY - 14}" fill="none" stroke="#1c1917" stroke-width="${isFemale ? '2.6' : '3.6'}" stroke-linecap="round"/>
+          <!-- Expressive Almond Eyes -->
+          <path d="M153 ${eyeY} Q169 ${eyeY - 10} 185 ${eyeY} Q169 ${eyeY + 8} 153 ${eyeY} Z" fill="#fffdf8" stroke="#1c1917" stroke-width="2"/>
+          <circle cx="169" cy="${eyeY}" r="5.4" fill="#1c1917"/><circle cx="171" cy="${eyeY - 2}" r="1.7" fill="#ffffff"/>
+          <path d="M215 ${eyeY} Q231 ${eyeY - 10} 247 ${eyeY} Q231 ${eyeY + 8} 215 ${eyeY} Z" fill="#fffdf8" stroke="#1c1917" stroke-width="2"/>
+          <circle cx="231" cy="${eyeY}" r="5.4" fill="#1c1917"/><circle cx="233" cy="${eyeY - 2}" r="1.7" fill="#ffffff"/>
+          <!-- Nose -->
+          <path d="M200 ${eyeY + 4} L196 254 Q200 262 208 256" fill="none" stroke="#292524" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M190 256 Q195 260 198 258 M203 258 Q207 260 211 256" fill="none" stroke="#44403c" stroke-width="1.4" stroke-linecap="round"/>
+          <!-- Warm Smiling Lips -->
+          <path d="M177 284 Q188 279 200 282 Q212 279 223 284 Q200 ${smileCurve} 177 284 Z" fill="#d6c4ae" stroke="#1c1917" stroke-width="1.7"/>
+          <path d="M179 284 Q200 290 221 284" fill="none" stroke="#292524" stroke-width="1.3"/>
+          ${facialExtra}
+          <!-- Sketch Cross-Hatching Shading -->
+          <g stroke="#44403c" stroke-width="0.9" opacity="0.28">
+            <line x1="142" y1="240" x2="152" y2="256"/><line x1="146" y1="252" x2="156" y2="268"/><line x1="248" y1="240" x2="258" y2="256"/><line x1="244" y1="252" x2="254" y2="268"/>
+            <line x1="186" y1="306" x2="214" y2="306"/>
+          </g>
+          <rect x="14" y="14" width="372" height="472" rx="12" fill="none" stroke="#78716c" stroke-width="1.2" opacity="0.45"/>
+        </svg>`;
+        const pBytes = new TextEncoder().encode(procSvg);
+        return jsonRes({
+          imageDataUrl: `data:image/svg+xml;base64,${arrayBufferToBase64(pBytes.buffer)}`,
+          engine: 'Astro-Art Sketch ✓'
+        });
+      } catch (err) {
+        return jsonRes({ error: 'SKETCH_FAILED', message: err?.message || 'Sketch generation failed.' }, 500);
+      }
+    }
+
+    // 6b. Real-Time Unified AI Jyotish Guru (Kundli + Palm + Numerology + Profile)
+    if (path === '/api/ai-guru' && request.method === 'POST') {
+      try {
+        if (!apiKey) return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY.' }, 503);
+        const { question, context = {}, language = 'hi' } = await request.json().catch(() => ({}));
+        if (!question) return jsonRes({ error: 'MISSING_QUESTION', message: 'Question required.' }, 400);
+        const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, आत्मीय और सटीक वैदिक गुरुजी शैली की हिंदी)';
+        const prompt = `You are MAHAJYOTISH Acharya AI Guru — a compassionate, deeply knowledgeable Vedic Astrologer, Palmist, Numerologist & Vastu Expert.
+Answer the user's question in ${targetLang} in 4-6 clear, warm sentences suitable for both reading and voice playback. Use their available chart/palm/profile context below if present (never invent chart details not given; give practical Vedic remedies where helpful):
+Context: ${JSON.stringify(context).slice(0, 6000)}
+User Question: ${question}`;
+        const result = await callGemini(apiKey, model, {
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.65, maxOutputTokens: 700 }
+        });
+        if (!result.ok) return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}` }, 502);
+        const answer = result.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        return jsonRes({ answer, model: result.usedModel });
+      } catch (err) {
+        return jsonRes({ error: 'GURU_FAILED', message: err?.message || 'AI Guru failed.' }, 500);
+      }
+    }
+
+    // 6c. AI Vastu Floorplan / Home Map Vision Scanner
+    if (path === '/api/analyze-vastu-map' && request.method === 'POST') {
+      try {
+        if (!apiKey) return jsonRes({ error: 'AI_NOT_CONFIGURED', message: 'Set MY_GEMINI_KEY.' }, 503);
+        const { imageBase64, mimeType = 'image/jpeg', facing = 'East', propertyType = 'Home', language = 'hi' } = await request.json().catch(() => ({}));
+        if (!imageBase64) return jsonRes({ error: 'MISSING_IMAGE', message: 'Floorplan image required.' }, 400);
+        const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '').trim();
+        const targetLang = language === 'en' ? 'English' : 'Hindi (सरल, व्यावहारिक वास्तु शास्त्र हिंदी)';
+        const prompt = `You are a Senior Indian Vastu Shastra & Architectural Floorplan Expert.
+Analyze this uploaded ${propertyType} floorplan/map image assuming the main entrance/facing direction is ${facing}. Write all text in ${targetLang}.
+Return ONLY valid JSON with keys:
+- vastu_score (integer 45 to 96)
+- overall_verdict (2-3 sentences summarizing energy flow)
+- entrance_analysis (2 sentences)
+- kitchen_bedroom_analysis (3 sentences)
+- brahmasthan_toilet_analysis (2-3 sentences)
+- detected_doshas (array of 3-4 concise observed Vastu issues)
+- non_demolition_remedies (array of 4-5 practical बिना तोड़-फोड़ Vastu remedies using colors, mirrors, salt, plants, pyramid, lighting)`;
+        const result = await callGemini(apiKey, model, {
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType, data: cleanBase64 } }
+            ]
+          }],
+          generationConfig: { temperature: 0.45, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+        });
+        if (!result.ok) return jsonRes({ error: 'GEMINI_ERROR', message: `HTTP ${result.status}` }, 502);
+        const jsonStr = extractJson(result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+        if (!jsonStr) return jsonRes({ error: 'INVALID_AI_RESPONSE', message: 'Non-JSON Vastu output.' }, 502);
+        const parsed = JSON.parse(jsonStr);
+        parsed._meta = { mode: 'real_ai', model: result.usedModel };
+        return jsonRes(parsed);
+      } catch (err) {
+        return jsonRes({ error: 'VASTU_MAP_FAILED', message: err?.message || 'Vastu map scan failed.' }, 500);
+      }
+    }
+
+    // 7. Serve all static frontend files (index.html, manifest.json, sw.js, icons)
     if (env && env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
