@@ -1586,6 +1586,13 @@
                 <button id="autoCaptureToggleBtn" type="button" class="btn-outline-gold px-3 py-2.5 rounded-xl text-xs">⚡ ऑटो-कैप्चर: ON</button>
                 <button id="stopCameraBtn" type="button" class="px-3 py-2.5 rounded-xl text-xs border border-red-400/40 bg-red-500/15 text-red-200">बंद करें</button>
               </div>
+              <div class="mt-2.5 px-3 py-2 rounded-xl bg-black/55 border border-amber-400/30 flex items-center gap-2.5 text-xs">
+                <span class="text-amber-200 font-bold shrink-0">🖐️ हाथ साइज:</span>
+                <button id="guideSizeMinusBtn" type="button" class="btn-outline-gold px-2 py-0.5 rounded-lg font-bold">➖</button>
+                <input id="guideSizeSlider" type="range" min="70" max="140" value="105" class="flex-1 accent-amber-400" />
+                <button id="guideSizePlusBtn" type="button" class="btn-outline-gold px-2 py-0.5 rounded-lg font-bold">➕</button>
+                <span id="guideSizeLabel" class="text-amber-300 font-bold w-10 text-right">105%</span>
+              </div>
             </div>
           </div>
 
@@ -3753,8 +3760,17 @@
                 }
               }
 
-              // Snap each sample perpendicularly onto the darkest local crease valley inside palm skin
-              const searchR = Math.max(10, Math.min(24, Math.round(cw * 0.042)));
+              // Deep interior palm skin check (must be >=12px inside skin on all 4 sides — NEVER pulls onto outer hand edge!)
+              const edgeMargin = Math.max(10, Math.round(cw * 0.028));
+              const isDeepInteriorPalm = (x, y) =>
+                isPalmSkin(x, y) &&
+                isPalmSkin(x - edgeMargin, y) &&
+                isPalmSkin(x + edgeMargin, y) &&
+                isPalmSkin(x, y - edgeMargin) &&
+                isPalmSkin(x, y + edgeMargin);
+
+              // Snap each sample perpendicularly ONLY onto a true bilateral dark crease valley inside interior palm
+              const searchR = Math.max(6, Math.min(12, Math.round(cw * 0.022)));
               const snapped = samples.map((pt, idx) => {
                 if (!pxData) return pt;
                 const pPrev = samples[Math.max(0, idx - 1)];
@@ -3763,18 +3779,18 @@
                 const dLen = Math.hypot(dx, dy) || 1;
                 const nx = -dy / dLen, ny = dx / dLen;
 
-                let bestX = pt[0], bestY = pt[1], bestScore = -1e9;
-                for (let off = -searchR; off <= searchR; off += 1.5) {
+                let bestX = pt[0], bestY = pt[1], bestScore = 3.2; // Minimum bilateral valley threshold
+                for (let off = -searchR; off <= searchR; off += 1) {
                   const cx = pt[0] + nx * off;
                   const cy = pt[1] + ny * off;
-                  if (cx < 4 || cx > cw - 4 || cy < 4 || cy > ch - 4) continue;
-                  if (!isPalmSkin(cx, cy)) continue;
-                  // Crease valley score: center pixel is darker than its ±4px normal neighbors
+                  if (cx < edgeMargin || cx > cw - edgeMargin || cy < edgeMargin || cy > ch - edgeMargin) continue;
+                  if (!isDeepInteriorPalm(cx, cy)) continue;
+                  // TRUE BILATERAL VALLEY: center MUST be darker than BOTH +4px AND -4px normal neighbors (rejects edges!)
                   const cLum = getLum(cx, cy);
-                  const sideAvg = (getLum(cx + nx * 4, cy + ny * 4) + getLum(cx - nx * 4, cy - ny * 4)) * 0.5;
-                  const valleyDepth = sideAvg - cLum;
-                  const distPenalty = Math.abs(off) * 0.28;
-                  const score = valleyDepth * 2.2 - cLum * 0.12 - distPenalty;
+                  const lumPlus = getLum(cx + nx * 4, cy + ny * 4);
+                  const lumMinus = getLum(cx - nx * 4, cy - ny * 4);
+                  const bilateralValley = Math.min(lumPlus - cLum, lumMinus - cLum);
+                  const score = bilateralValley - Math.abs(off) * 0.18;
                   if (score > bestScore) {
                     bestScore = score;
                     bestX = cx;
@@ -11452,6 +11468,18 @@
         el('startCameraBtn').addEventListener('click', startCamera);
         el('stopCameraBtn').addEventListener('click', stopCamera);
         el('capturePhotoBtn').addEventListener('click', captureFromCamera);
+        const applyGuideScale = (pct) => {
+          const clamped = Math.max(70, Math.min(140, Number(pct) || 105));
+          const sl = el('guideSizeSlider');
+          const lb = el('guideSizeLabel');
+          const svg = el('palmGuideSvg');
+          if (sl) sl.value = String(clamped);
+          if (lb) lb.textContent = clamped + '%';
+          if (svg) svg.style.transform = `scale(${(clamped / 100).toFixed(2)})`;
+        };
+        if (el('guideSizeSlider')) el('guideSizeSlider').addEventListener('input', (e) => applyGuideScale(e.target.value));
+        if (el('guideSizeMinusBtn')) el('guideSizeMinusBtn').addEventListener('click', () => applyGuideScale((Number(el('guideSizeSlider')?.value) || 105) - 8));
+        if (el('guideSizePlusBtn')) el('guideSizePlusBtn').addEventListener('click', () => applyGuideScale((Number(el('guideSizeSlider')?.value) || 105) + 8));
         if (el('torchToggleBtn')) {
           el('torchToggleBtn').addEventListener('click', async () => {
             const cur = state.torchMode || 'auto';
